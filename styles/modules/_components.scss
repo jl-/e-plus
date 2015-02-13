@@ -1,0 +1,104 @@
+/* components */
+
+a.nudl,
+a.nudl:hover,
+a.nudl:focus,
+a.nudl:visited{
+    text-decoration: none;
+}
+a.udl{
+    text-decoration: underline;
+}
+a.lb{
+    &:hover{
+        background-color: $a-c;
+        color: white;
+        border-left: 4px solid #555;
+    }
+}
+
+
+
+
+/* avatar
+=======================================*/
+.avatar{
+    @include size(80px);
+}
+.avatar-lg{
+    @include size(120px);
+}
+.avatar-sm{
+    @include size(60px);
+}
+.avatar-extra-sm{
+    @include size(30px);
+}
+
+
+
+
+/* circle
+===============================*/
+.circle{
+    border-radius: 50%;
+}
+
+
+
+/* form element
+================================*/
+.bare{
+    @extend %bare;
+}
+.bare-input{
+   @extend %bare; 
+   max-width: 100%;
+   padding: 4px 8px;
+   box-shadow: 0 0 6px;
+   &[disabled]{
+    box-shadow: none;
+   }
+}
+
+
+/* others
+===============================*/
+.inner-shadow{
+    box-shadow: 0 0 18px -8px inset;
+}
+
+input.white,textarea.white{
+    &::-webkit-input-placeholder { /* WebKit browsers */
+        color:  white;
+    }
+    &:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+        color:  white;
+    }
+    &::-moz-placeholder { /* Mozilla Firefox 19+ */
+        color:  white;
+    }
+    &:-ms-input-placeholder { /* Internet Explorer 10+ */
+        color:  white;
+    }
+}
+
+
+
+
+
+/* flag
+===============*/
+.flag{
+    border-left: 4px solid;
+    @extend .pl-lg;
+}
+.bb{
+  border-bottom: 1px solid;
+}
+
+
+
+.bb-dashed{
+    border-bottom: 1px dashed;
+}
