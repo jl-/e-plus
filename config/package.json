@@ -1,0 +1,9 @@
+{
+  "name": "app config",
+  "version": "0.0.0",
+  "description": "app config",
+  "main": "config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
