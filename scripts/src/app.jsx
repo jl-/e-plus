@@ -19,8 +19,6 @@ var Admin = require('./pages/admin/admin.jsx');
 var Call = require('./pages/admin/call/call.jsx');
 
 var Message = require('./pages/admin/message/message.jsx');
-var MessageUnread = require('./pages/admin/message/unread.jsx');
-var MessageArchive = require('./pages/admin/message/archive.jsx');
 
 
 var Contact = require('./pages/admin/contact/contact.jsx');
@@ -46,10 +44,7 @@ var routes = (
         </Route>
         <DefaultRoute handler={Login}></DefaultRoute>
         <Route name="admin" path="/admin" handler={Admin}>
-            <Route name="admin.message" path="/message" handler={Message}>
-                <Route name="admin.message.unread" path="/message/unread" handler={MessageUnread}></Route>
-                <Route name="admin.message.archive" path="/message/archive" handler={MessageArchive}></Route>
-            </Route>
+            <Route name="admin.message" path="/message" handler={Message}></Route>
             <Route name="admin.call" path="/call" handler={Call}></Route>
             <Route name="admin.contact" path="/contact" handler={Contact}></Route>
             <Route name="admin.file" path="/file" handler={File}></Route>

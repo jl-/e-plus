@@ -34,7 +34,7 @@ var Admin = React.createClass({
                     </div>
                     <ul className="nav nav-tabs">
                         <li>
-                            <Link to="admin.message.unread">短信</Link>
+                            <Link to="admin.message">短信</Link>
                         </li>
                         <li>
                             <Link to="admin.call">通话</Link>

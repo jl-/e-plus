@@ -4,9 +4,6 @@
  */
 var React = require('react/addons');
 
-var Router = require('react-router');
-var RouteHandler = Router.RouteHandler;
-var Link = Router.Link;
 
 
 
@@ -41,8 +38,8 @@ var Message = React.createClass({
             <div className="plr-extra">
                 <div className="text-center w-10 ptb-lg bb light">
                     <div className="btn-group w-5">
-                        <Link className="btn btn-primary w-5" to="admin.message.unread">未读短信 <span className="badge ml-lg">1</span></Link>
-                        <Link className="btn btn-primary w-5" to="admin.message.archive">归档</Link>
+                        <label className="btn btn-primary w-5" onClick={this.switchView}>未读短信 <span className="badge ml-lg">1</span></label>
+                        <label className="btn btn-primary w-5" onClick={this.switchView}>归档</label>
                     </div>
                 </div>
                 <div>
@@ -55,7 +52,6 @@ var Message = React.createClass({
                                 <td className="w-1">时间</td>
                             </tr>
                         </thead>
-                        <RouteHandler></RouteHandler>
                     </table>
                 </div>
             </div>
@@ -64,6 +60,9 @@ var Message = React.createClass({
     onChange: function(){
         console.log('/// message change event!');
         this.setState(getMessageFromStore());
+    },
+    switchView: function(view){
+        console.log(view);
     }
 });
 

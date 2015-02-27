@@ -138,7 +138,7 @@ var Login = React.createClass({
             this.setState({
                 loginState: 'normal'
             });
-            this.transitionTo('admin.message.unread');
+            this.transitionTo('admin.message');
         }else{
             this.setState({
                 loginState: 'disabled',

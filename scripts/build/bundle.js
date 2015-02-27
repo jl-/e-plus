@@ -24660,8 +24660,6 @@ var Admin = require('./pages/admin/admin.jsx');
 var Call = require('./pages/admin/call/call.jsx');
 
 var Message = require('./pages/admin/message/message.jsx');
-var MessageUnread = require('./pages/admin/message/unread.jsx');
-var MessageArchive = require('./pages/admin/message/archive.jsx');
 
 
 var Contact = require('./pages/admin/contact/contact.jsx');
@@ -24687,10 +24685,7 @@ var routes = (
         ), 
         React.createElement(DefaultRoute, {handler: Login}), 
         React.createElement(Route, {name: "admin", path: "/admin", handler: Admin}, 
-            React.createElement(Route, {name: "admin.message", path: "/message", handler: Message}, 
-                React.createElement(Route, {name: "admin.message.unread", path: "/message/unread", handler: MessageUnread}), 
-                React.createElement(Route, {name: "admin.message.archive", path: "/message/archive", handler: MessageArchive})
-            ), 
+            React.createElement(Route, {name: "admin.message", path: "/message", handler: Message}), 
             React.createElement(Route, {name: "admin.call", path: "/call", handler: Call}), 
             React.createElement(Route, {name: "admin.contact", path: "/contact", handler: Contact}), 
             React.createElement(Route, {name: "admin.file", path: "/file", handler: File})
@@ -24711,7 +24706,7 @@ window.React = React;
 module.exports = App;
 
 
-},{"./pages/admin/admin.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","./pages/admin/call/call.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","./pages/admin/contact/contact.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","./pages/admin/file/file.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","./pages/admin/message/archive.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","./pages/admin/message/message.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","./pages/admin/message/unread.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","./pages/login.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx":[function(require,module,exports){
+},{"./pages/admin/admin.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","./pages/admin/call/call.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","./pages/admin/contact/contact.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","./pages/admin/file/file.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","./pages/admin/message/message.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","./pages/login.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/23/15.
@@ -25223,7 +25218,7 @@ var Admin = React.createClass({displayName: "Admin",
                     ), 
                     React.createElement("ul", {className: "nav nav-tabs"}, 
                         React.createElement("li", null, 
-                            React.createElement(Link, {to: "admin.message.unread"}, "短信")
+                            React.createElement(Link, {to: "admin.message"}, "短信")
                         ), 
                         React.createElement("li", null, 
                             React.createElement(Link, {to: "admin.call"}, "通话")
@@ -25344,9 +25339,6 @@ module.exports = MessageArchive;
  */
 var React = require('react/addons');
 
-var Router = require('react-router');
-var RouteHandler = Router.RouteHandler;
-var Link = Router.Link;
 
 
 
@@ -25381,8 +25373,8 @@ var Message = React.createClass({displayName: "Message",
             React.createElement("div", {className: "plr-extra"}, 
                 React.createElement("div", {className: "text-center w-10 ptb-lg bb light"}, 
                     React.createElement("div", {className: "btn-group w-5"}, 
-                        React.createElement(Link, {className: "btn btn-primary w-5", to: "admin.message.unread"}, "未读短信 ", React.createElement("span", {className: "badge ml-lg"}, "1")), 
-                        React.createElement(Link, {className: "btn btn-primary w-5", to: "admin.message.archive"}, "归档")
+                        React.createElement("label", {className: "btn btn-primary w-5", onClick: this.switchView}, "未读短信 ", React.createElement("span", {className: "badge ml-lg"}, "1")), 
+                        React.createElement("label", {className: "btn btn-primary w-5", onClick: this.switchView}, "归档")
                     )
                 ), 
                 React.createElement("div", null, 
@@ -25394,8 +25386,7 @@ var Message = React.createClass({displayName: "Message",
                                 React.createElement("td", {className: "w-6"}, "内容"), 
                                 React.createElement("td", {className: "w-1"}, "时间")
                             )
-                        ), 
-                        React.createElement(RouteHandler, null)
+                        )
                     )
                 )
             )
@@ -25404,12 +25395,15 @@ var Message = React.createClass({displayName: "Message",
     onChange: function(){
         console.log('/// message change event!');
         this.setState(getMessageFromStore());
+    },
+    switchView: function(view){
+        console.log(view);
     }
 });
 
 module.exports = Message;
 
-},{"../../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../../stores/MessageStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx":[function(require,module,exports){
+},{"../../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../../stores/MessageStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/26/15.
@@ -25578,7 +25572,7 @@ var Login = React.createClass({displayName: "Login",
             this.setState({
                 loginState: 'normal'
             });
-            this.transitionTo('admin.message.unread');
+            this.transitionTo('admin.message');
         }else{
             this.setState({
                 loginState: 'disabled',
