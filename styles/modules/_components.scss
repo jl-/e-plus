@@ -96,9 +96,87 @@ input.white,textarea.white{
 .bb{
   border-bottom: 1px solid;
 }
+.bb.light{
+  border-color: #eee;
+}
 
 
 
 .bb-dashed{
     border-bottom: 1px dashed;
 }
+
+
+
+/* paper input
+=======================*/
+.paper-input-wrapper{
+  @extend .relative;
+  @extend .ptb-extra;
+}
+.paper-input-label,
+.paper-input,
+.paper-input-meta{
+  @extend .mtb-0;
+  height: 32px;
+  line-height: 32px;
+}
+.paper-input-label,
+.paper-input-meta{
+  @extend .absolute;
+  @extend .left;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.paper-input-label{
+  font-size: 22px;
+  transform: translateY(0px);
+}
+.paper-input{
+  @extend .relative;
+  @extend .bare;
+  @extend .bb;
+  font-size: 26px;
+  z-index: 1;
+}
+.paper-input-meta{
+  top: 64px;
+  font-size: 16px;
+  opacity: 0;
+}
+.paper-input-wrapper.active{
+  & > .paper-input-label{
+    transform: translateY(-32px);
+  }
+  & > .paper-input-meta{
+    opacity: 1;
+  }
+}
+.paper-input-wrapper.has-error{
+  color: red;
+}
+.paper-input-wrapper.has-success{
+  & > .paper-input-label{
+//    color: $has-success;
+  }
+  & > .paper-input{
+//    color: #000000;
+  }
+}
+
+
+/* btn
+===================*/
+.btn-raised{
+  box-shadow:0 3px 10px rgba(0, 0, 0, 0.23), 0 3px 10px rgba(0, 0, 0, 0.16);
+  transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover{
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.23), 0 10px 30px rgba(0, 0, 0, 0.19);
+    &:not(:focus){
+      &.btn-primary{
+        background-color: rgb(51,122,183);
+      }
+    }
+  }
+}
+
+

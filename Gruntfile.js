@@ -49,8 +49,18 @@ module.exports = function(grunt) {
             },
             app: {
                 files: {
-                    '<%= config.scripts %>/build/react/components/components.js': ['<%= config.scripts %>/src/react/components/*.jsx'],
-                    '<%= config.scripts %>/build/react/playground.js': ['<%= config.scripts %>/src/react/playground.jsx']
+                    //'<%= config.scripts %>/build/bundle.js': ['<%= config.scripts %>/src/**/*.{js,jsx}','!<%= config.scripts %>/src/playground/**/*.{js,jsx}']
+                    '<%= config.scripts %>/build/bundle.js': [
+                        '<%= config.scripts %>/src/utils/**/*.{js,jsx}',
+                        '<%= config.scripts %>/src/configs/**/*.{js,jsx}',
+                        '<%= config.scripts %>/src/components/**/*.{js,jsx}',
+                        '<%= config.scripts %>/src/dispatchers/AppDispatcher.js',
+                        '<%= config.scripts %>/src/stores/**/*.{js,jsx}',
+                        '<%= config.scripts %>/src/actions/**/*.{js,jsx}',
+                        '<%= config.scripts %>/src/apis/**/*.{js,jsx}',
+                        '<%= config.scripts %>/src/pages/**/*.{js,jsx}',
+                        '<%= config.scripts %>/src/app.jsx'
+                    ]
                 }
             }
         },
@@ -84,6 +94,10 @@ module.exports = function(grunt) {
             },
             js: {
                 files: ['<%= config.scripts %>/**/*.js']
+            },
+            jsx: {
+                files: ['<%= config.scripts %>/**/*.jsx'],
+                tasks: ['browserify']
             }
         }
 

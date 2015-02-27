@@ -1,9 +1,0 @@
-{
-  "name": "page render",
-  "version": "0.0.0",
-  "description": "page render",
-  "main": "render.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
-}

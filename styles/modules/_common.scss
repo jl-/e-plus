@@ -58,7 +58,7 @@ pre > code{
 .flex-row.center,.flex-column.center{
     justify-content: center;
 }
-.flex-row.stretch,.flex-column.stretch{
+.flex-row.items-stretch,.flex-column.items-stretch{
     align-items: stretch;
 }
 .flex-row.items-start,.flex-column.items-start{
@@ -66,6 +66,9 @@ pre > code{
 }
 .flex-row.content-start,.flex-column.content-start{
     align-content: flex-start;
+}
+.flex-row.wrap,.flex-column.wrap{
+  flex-wrap: wrap;
 }
 .flex-row.nowrap,.flex-column.nowrap{
     flex-wrap: nowrap;
@@ -111,7 +114,7 @@ pre > code{
 }
 /* padding margin helper
 ======================*/
-$size-value: (sm: 3px, md: 6px, lg: 12px, extra: 24px);
+$size-value: (0: 0, sm: 4px, md: 8px, lg: 16px, extra: 32px);
 $directions: (l: left, r: right, t: top, b: bottom);
 @each $size,$value in $size-value{
     @each $ds,$df in $directions{
