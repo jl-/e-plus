@@ -13,6 +13,9 @@ var ServerRequestActionCreators = {};
 var ACTION_TYPES = CONFIG.ACTION_TYPES;
 
 
+//=============
+// auth
+//////////////////////////
 ServerRequestActionCreators.requestLogin = function(account){
     AppDispatcher.dispatchAction({
         type: ACTION_TYPES.LOGIN_REQUEST,
@@ -21,13 +24,44 @@ ServerRequestActionCreators.requestLogin = function(account){
     API.login(account);
 };
 
-ServerRequestActionCreators.requestMessage = function(query){
+
+
+//================
+// settings
+//////////////////////////
+ServerRequestActionCreators.requestProfile = function(token){
+    API.getProfile(token);
+};
+
+
+//==================
+// message
+///////////////////////////
+ServerRequestActionCreators.requestMessages = function(query){
     AppDispatcher.dispatchAction({
-        type: ACTION_TYPES.MESSAGE_LIST_REQUEST,
+        type: ACTION_TYPES.MESSAGES_LIST_REQUEST,
         data: query
     });
     API.getMessagesList(query);
 };
+ServerRequestActionCreators.changeMessagesStatus = function(messageIds,status){
+    API.changeMessagesStatus(messageIds,status);
+};
 
+ServerRequestActionCreators.deleteMessages = function(messageIds){
+    API.deleteMessages(messageIds);
+};
 
+//============
+// call
+/////////////////
+ServerRequestActionCreators.requestCalls = function(query){
+    API.getCallsList(query);
+};
+ServerRequestActionCreators.changeCallsStatus = function(callIds,status){
+    API.changeCallsStatus(callIds,status);
+};
+ServerRequestActionCreators.deleteCalls = function(callIds){
+    API.deleteMessages(callIds);
+};
 module.exports = ServerRequestActionCreators;

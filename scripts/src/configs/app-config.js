@@ -25,20 +25,48 @@ CONFIG.PAYLOAD_SOURCES = keyMirror(CONFIG.PAYLOAD_SOURCES);
 CONFIG.ACTION_TYPES = [
     'LOGIN_REQUEST',
     'LOGIN_RESPONSE',
-    'MESSAGE_LIST_REQUEST',
-    'MESSAGE_LIST_RESPONSE',
-    'MESSAGE_ARCHIVE_REQUEST',
-    'MESSAGE_ARCHIVE_RESPONSE'
+    'PROFILE_RESPONSE',
+    'MESSAGES_LIST_REQUEST',
+    'MESSAGES_LIST_RESPONSE',
+    'MESSAGES_ARCHIVE_REQUEST',
+    'MESSAGES_ARCHIVE_RESPONSE',
+    'MESSAGES_VIEW_CHANGE',
+    'MESSAGES_DELETED',
+    'MESSAGES_STATUS_CHANGED',
+    'CALLS_LIST_REQUEST',
+    'CALLS_LIST_RESPONSE',
+    'CALLS_ARCHIVE_REQUEST',
+    'CALLS_ARCHIVE_RESPONSE',
+    'CALLS_VIEW_CHANGE',
+    'CALLS_DELETED',
+    'CALLS_STATUS_CHANGED'
 ];
 CONFIG.ACTION_TYPES = keyMirror(CONFIG.ACTION_TYPES);
 
-/// API
-var domain = 'http://localhost:6002';
 
+
+
+/// API
+////////////// dev
+var domain = 'http://localhost:6002';
 CONFIG.APIS = {
-    LOGIN: domain + '/session',
-    MESSAGE_LIST: domain + '/message'
+    LOGIN: domain + '/sessions',
+    PROFILE: domain + '/profiles',
+    MESSAGES_LIST: domain + '/messages',
+    DELETE_MESSAGES: domain + '/messages',
+    CHANGE_MESSAGES_STATUS: domain + '/messages/status',
+
+    CALLS_LIST: domain + '/calls',
+    DELETE_CALLS: domain + '/calls',
+    CHANGE_CALLS_STATUS: domain + '/calls/status'
+
 };
 
+/////////// prop
+//domain = 'http://vincent.wenyejy.com';
+//CONFIG.APIS = {
+//    LOGIN: domain + '/Admin/User/login',
+//    MESSAGE_LIST: domain + '/Home/index/message'
+//};
 
 module.exports = CONFIG;

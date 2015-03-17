@@ -15,6 +15,9 @@ pre > code{
     padding: .3em .6em 0.2em;
     font-size: 90%;
 }
+.table > tbody > tr > td{
+//  vertical-align: middle;
+}
 /* placeholder color
 =======================*/
 ::-webkit-input-placeholder { /* WebKit browsers */

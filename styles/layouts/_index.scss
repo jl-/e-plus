@@ -18,3 +18,35 @@
   background-color: white;
   border-color: #eee #eee transparent #eee;
 }
+
+.unread{
+  font-weight: bolder;
+  color: black;
+}
+.read{
+  color: #777;
+}
+.read,
+.unread{
+  padding: 6px 4px;
+  font-size: 1.2em;
+  border-bottom: 1px solid #f0f0f0;
+  &:hover{
+    background-color: #fafafa;
+  }
+  &.active{
+    background-color: #f4f4f4;
+  }
+}
+
+input[type="checkbox"]{
+  margin-top: 0;
+}
+
+
+.panel-body{
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+  transition: height 0.4s ease;
+}

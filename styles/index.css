@@ -541,8 +541,6 @@ input.white:-ms-input-placeholder, textarea.white:-ms-input-placeholder {
 .btn-raised:hover:not(:focus).btn-primary {
   background-color: #337ab7; }
 
-/* table
-=======================*/
 /* login page
 ============================*/
 .login-form {
@@ -559,6 +557,32 @@ input.white:-ms-input-placeholder, textarea.white:-ms-input-placeholder {
 .nav.nav-tabs .active {
   background-color: white;
   border-color: #eee #eee transparent #eee; }
+
+.unread {
+  font-weight: bolder;
+  color: black; }
+
+.read {
+  color: #777; }
+
+.read, .unread {
+  padding: 6px 4px;
+  font-size: 1.2em;
+  border-bottom: 1px solid #f0f0f0; }
+.read:hover, .unread:hover {
+  background-color: #fafafa; }
+.read.active, .unread.active {
+  background-color: #f4f4f4; }
+
+input[type="checkbox"] {
+  margin-top: 0; }
+
+.panel-body {
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+  -webkit-transition: height 0.4s ease;
+          transition: height 0.4s ease; }
 
 @-webkit-keyframes shake {
   0%,100% {

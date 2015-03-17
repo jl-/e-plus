@@ -51,21 +51,23 @@ var Message = React.createClass({
 
         if(this.state.selected.length > 0){
             Menu =
-                <div className="flex-row start ptb plr-sm">
-                    <input type="checkbox" checked={this.state.selectAll} onChange={this.triggerAllSelection}/>
-                    <div className="m-0">
-                        <span className="label label-primary pointer ml-lg" onClick={this.markMessagesAsRead}>标记为已读</span>
-                        <span className="label label-primary pointer ml-lg" onClick={this.markMessagesAsUnread}>标记为未读</span>
-                    </div>
-                </div>;
+                <tr>
+                    <td className=""><input type="checkbox" checked={this.state.selectAll} onChange={this.triggerAllSelection}/></td>
+                    <td colSpan="3">
+                        <div className="m-0">
+                            <span className="label label-primary pointer ml-lg" onClick={this.markMessagesAsRead}>标记为已读</span>
+                            <span className="label label-primary pointer ml-lg" onClick={this.markMessagesAsUnread}>标记为未读</span>
+                        </div>
+                    </td>
+                </tr>;
         }else{
             Menu =
-                <div className="flex-row start ptb plr-sm">
-                    <input type="checkbox" onChange={this.triggerAllSelection}/>
-                    <span className="flex-1 ml">发送者</span>
-                    <span className="flex-2">内容</span>
-                    <span className="flex-1">时间</span>
-                </div>;
+                <tr>
+                    <td className=""><input type="checkbox" onChange={this.triggerAllSelection}/></td>
+                    <td className="w-2">发送者</td>
+                    <td className="w-6">内容</td>
+                    <td className="w-2">时间</td>
+                </tr>;
         }
 
         (this.state.list || []).forEach(function(item){
@@ -75,29 +77,13 @@ var Message = React.createClass({
         if(this.state.view === 'archive'){
             archiveClass += ' active';
             if(this.state.archive){
-                View = this.state.archive.map(function (archive) {
-                    var Items = archive.items.map(function(message){
-                        return (
-                            <CheckableRow className={'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read')} preChecked={self.state.selected.indexOf(message._id) !== -1} key={message._id} data={message} onSelectChanged={self.onMessageSelectChanged}>
-                                <div className="flex-1 ml">{message.sender_phone}</div>
-                                <div className="flex-2">{message.content}</div>
-                                <div className="flex-1">{(new Date(message.date)).toLocaleString()}</div>
-                            </CheckableRow>
-                        );
-                    });
-                    return (
-                        <div key={archive.group} className="panel panel-primary">
-                            <div className="panel-heading pointer flex-row between" onClick={self.toggleArchiveStatus}><span>{archive.group + ' (' + archive.items.length + ')'}</span><span className="fa fa-caret-right"></span></div>
-                            <div className="panel-body">
-                            {Items}
-                            </div>
-                        </div>
-                    );
+                this.state.archive.forEach(function (message) {
+
                 });
             }else{
                 View =
-                    <div>
-                    </div>;
+                    <tr>
+                    </tr>;
             }
         }else{
             unreadClass += ' active';
@@ -105,41 +91,44 @@ var Message = React.createClass({
                 View = this.state.list.map(function (message) {
                     var date = (new Date(message.date)).toLocaleString();
                     return (
-                        <CheckableRow className={'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read')} preChecked={self.state.selected.indexOf(message._id) !== -1} key={message._id} data={message} onSelectChanged={self.onMessageSelectChanged}>
-                            <div className="flex-1 ml">{message.sender_phone}</div>
-                            <div className="flex-2">{message.content}</div>
-                            <div className="flex-1">{date}</div>
+                        <CheckableRow className={message.status === 'P' ? 'unread' : 'read'} preChecked={self.state.selected.indexOf(message._id) !== -1} key={message._id} data={message} onSelectChanged={self.onMessageSelectChanged}>
+                            <td className="w-2">{message.sender_phone}</td>
+                            <td className="w-6">{message.content}</td>
+                            <td className="w-2">{date}</td>
                         </CheckableRow>
                     );
                 });
             }else{
                 View =
-                    <div>
-                    </div>;
+                    <tr>
+                    </tr>;
             }
         }
 
 
         return (
-            <div className="plr-extra full-row">
+            <div className="plr-extra">
                 <div className="text-center w-10 ptb-lg bb light">
                     <div className="btn-group w-5">
                         <label className={unreadClass} data-view="unread" onClick={this.switchView}>未读短信 <span className="badge ml-lg">{unreadCount}</span></label>
                         <label className={archiveClass} data-view="archive" onClick={this.switchView}>归档</label>
                     </div>
                 </div>
-                <div className="full-row">
-                    <div className="full-row">
+                <div>
+                    <table className="table table-hover">
+                        <thead>
                         {Menu}
+                        </thead>
+                        <tbody>
                         {View}
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         );
     },
     onChange: function(){
         this.setState(getMessageFromStore());
-        console.log(this.state);
     },
     switchView: function(event){
         var view = event.target.attributes.getNamedItem('data-view');
@@ -150,11 +139,6 @@ var Message = React.createClass({
                 selectAll: false,
                 selected: []
             });
-            if(view === 'archive'){
-                ServerRequestActionCreators.requestMessages({
-                    archive: true
-                });
-            }
             ViewActionCreators.changeMessageView(view);
         }
     },
@@ -182,6 +166,7 @@ var Message = React.createClass({
             selectAll: checked,
             selected: selectedIds
         });
+        console.log(this.state.selected);
     },
     deleteMessages: function(){
         if(this.state.selected.length > 0){
@@ -196,22 +181,6 @@ var Message = React.createClass({
     markMessagesAsUnread: function(){
         if(this.state.selected.length > 0){
             ServerRequestActionCreators.changeMessagesStatus(this.state.selected.join('|'), 'P');
-        }
-    },
-    toggleArchiveStatus: function(event){
-        var target = event.currentTarget;
-        var body = target.nextElementSibling;
-        if(target.classList.contains('panel-heading')){
-            if(body.classList.contains('open')){
-                target.lastChild.classList.add('fa-caret-right');
-                target.lastChild.classList.remove('fa-caret-down');
-                body.style.height = 0;
-            }else{
-                target.lastChild.classList.remove('fa-caret-right');
-                target.lastChild.classList.add('fa-caret-down');
-                body.style.height = body.scrollHeight + 'px';
-            }
-            body.classList.toggle('open');
         }
     }
 });

@@ -10,7 +10,7 @@ var ACTION_TYPES = CONFIG.ACTION_TYPES;
 var ServerResponseActionCreators = {};
 
 
-
+/// auth
 ServerResponseActionCreators.gotLoginFeedback = function (feedback) {
     AppDispatcher.dispatchAction({
         type: ACTION_TYPES.LOGIN_RESPONSE,
@@ -18,13 +18,53 @@ ServerResponseActionCreators.gotLoginFeedback = function (feedback) {
     });
 };
 
-ServerResponseActionCreators.gotMessagesList = function(messages){
+
+/// profile
+ServerResponseActionCreators.gotProfile = function(feedback){
     AppDispatcher.dispatchAction({
-        type: ACTION_TYPES.MESSAGE_LIST_RESPONSE,
-        data: messages
+        type: ACTION_TYPES.PROFILE_RESPONSE,
+        data: feedback
     });
 };
 
+/// message
+ServerResponseActionCreators.gotMessagesList = function(messages){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_LIST_RESPONSE,
+        data: messages
+    });
+};
+ServerResponseActionCreators.gotMessagesArchive = function(messages){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_ARCHIVE_RESPONSE,
+        data: messages
+    });
+};
+ServerResponseActionCreators.gotChangeMessagesStatusFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_STATUS_CHANGED,
+        data: feedback
+    });
+};
+ServerResponseActionCreators.gotDeleteMessagesFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_DELETED,
+        data: feedback
+    });
+};
 
+/// call
+ServerResponseActionCreators.gotCallsList = function(calls){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CALLS_LIST_RESPONSE,
+        data: calls
+    });
+};
+ServerResponseActionCreators.gotChangeCallsStatusFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CALLS_STATUS_CHANGED,
+        data: feedback
+    });
+};
 
 module.exports = ServerResponseActionCreators;

@@ -24534,6 +24534,9 @@ var ServerRequestActionCreators = {};
 var ACTION_TYPES = CONFIG.ACTION_TYPES;
 
 
+//=============
+// auth
+//////////////////////////
 ServerRequestActionCreators.requestLogin = function(account){
     AppDispatcher.dispatchAction({
         type: ACTION_TYPES.LOGIN_REQUEST,
@@ -24542,15 +24545,46 @@ ServerRequestActionCreators.requestLogin = function(account){
     API.login(account);
 };
 
-ServerRequestActionCreators.requestMessage = function(query){
+
+
+//================
+// settings
+//////////////////////////
+ServerRequestActionCreators.requestProfile = function(token){
+    API.getProfile(token);
+};
+
+
+//==================
+// message
+///////////////////////////
+ServerRequestActionCreators.requestMessages = function(query){
     AppDispatcher.dispatchAction({
-        type: ACTION_TYPES.MESSAGE_LIST_REQUEST,
+        type: ACTION_TYPES.MESSAGES_LIST_REQUEST,
         data: query
     });
     API.getMessagesList(query);
 };
+ServerRequestActionCreators.changeMessagesStatus = function(messageIds,status){
+    API.changeMessagesStatus(messageIds,status);
+};
 
+ServerRequestActionCreators.deleteMessages = function(messageIds){
+    API.deleteMessages(messageIds);
+};
 
+//============
+// call
+/////////////////
+ServerRequestActionCreators.requestCalls = function(query){
+    API.getCallsList(query);
+};
+ServerRequestActionCreators.changeCallsStatus = function(callIds,status){
+    API.changeCallsStatus(callIds,status);
+};
+ServerRequestActionCreators.deleteCalls = function(callIds){
+    API.deleteMessages(callIds);
+};
 module.exports = ServerRequestActionCreators;
 
 },{"../apis/api":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../dispatchers/AppDispatcher":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js":[function(require,module,exports){
@@ -24566,7 +24600,7 @@ var ACTION_TYPES = CONFIG.ACTION_TYPES;
 var ServerResponseActionCreators = {};
 
 
-
+/// auth
 ServerResponseActionCreators.gotLoginFeedback = function (feedback) {
     AppDispatcher.dispatchAction({
         type: ACTION_TYPES.LOGIN_RESPONSE,
@@ -24574,16 +24608,88 @@ ServerResponseActionCreators.gotLoginFeedback = function (feedback) {
     });
 };
 
+
+/// profile
+ServerResponseActionCreators.gotProfile = function(feedback){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.PROFILE_RESPONSE,
+        data: feedback
+    });
+};
+
+/// message
 ServerResponseActionCreators.gotMessagesList = function(messages){
     AppDispatcher.dispatchAction({
-        type: ACTION_TYPES.MESSAGE_LIST_RESPONSE,
+        type: ACTION_TYPES.MESSAGES_LIST_RESPONSE,
         data: messages
+    });
+};
+ServerResponseActionCreators.gotMessagesArchive = function(messages){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_ARCHIVE_RESPONSE,
+        data: messages
+    });
+};
+ServerResponseActionCreators.gotChangeMessagesStatusFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_STATUS_CHANGED,
+        data: feedback
+    });
+};
+ServerResponseActionCreators.gotDeleteMessagesFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_DELETED,
+        data: feedback
+    });
+};
+
+/// call
+ServerResponseActionCreators.gotCallsList = function(calls){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CALLS_LIST_RESPONSE,
+        data: calls
+    });
+};
+ServerResponseActionCreators.gotChangeCallsStatusFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CALLS_STATUS_CHANGED,
+        data: feedback
+    });
+};
+
+module.exports = ServerResponseActionCreators;
+
+},{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../dispatchers/AppDispatcher":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js":[function(require,module,exports){
+/**
+ *
+ * Created by jl on 2/19/15.
+ */
+
+var CONFIG = require('../configs/app-config');
+var AppDispatcher = require('../dispatchers/AppDispatcher');
+var ACTION_TYPES = CONFIG.ACTION_TYPES;
+
+var ViewActionCreators = {};
+
+
+
+ViewActionCreators.changeMessageView = function (view) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.MESSAGES_VIEW_CHANGE,
+        data: view
     });
 };
 
 
+ViewActionCreators.changeCallView = function (view) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CALLS_VIEW_CHANGE,
+        data: view
+    });
+};
 
-module.exports = ServerResponseActionCreators;
+
+module.exports = ViewActionCreators;
 
 },{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../dispatchers/AppDispatcher":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js":[function(require,module,exports){
 /**
@@ -24596,12 +24702,14 @@ var CONFIG = require('../configs/app-config');
 var request = require('superagent');
 
 var ServerResponseActionCreators = require('../actions/ServerResponseActionCreators');
+var SessionStore = require('../stores/SessionStore');
 
 
 var API_CONFIG = CONFIG.APIS;
 
 var API = {};
 
+/// auth
 API.login = function(account){
 
     //setTimeout(function () {
@@ -24621,16 +24729,74 @@ API.login = function(account){
 
 };
 
+/// profile
+API.getProfile = function(token){
+    request.get(API_CONFIG.PROFILE)
+        .set('Authorization', 'Bearer ' + (token || SessionStore.getToken()))
+        .end(function(err,data){
+            ServerResponseActionCreators.gotProfile(data || err);
+        });
+};
+
+
 /// message
 API.getMessagesList = function(query){
-    request.get(API_CONFIG.MESSAGE_LIST)
+    request.get(API_CONFIG.MESSAGES_LIST)
         .query(query)
+        .set('Authorization', 'Bearer ' + SessionStore.getToken())
         .end(function(err,data){
-            ServerResponseActionCreators.gotMessagesList(data || err);
+            if(query && query.archive){
+                ServerResponseActionCreators.gotMessagesArchive(data || err);
+            }else{
+                ServerResponseActionCreators.gotMessagesList(data || err);
+            }
         });
 };
 API.getArchiveMessages = function(query){
 
+};
+API.changeMessagesStatus = function(messageIds,status){
+    request.put(API_CONFIG.CHANGE_MESSAGES_STATUS)
+        .set('Authorization', 'Bearer ' + SessionStore.getToken())
+        .send({
+            messageIds: messageIds,
+            status: status
+        })
+        .end(function(err,data){
+            ServerResponseActionCreators.gotChangeMessagesStatusFeedback(data || err);
+        });
+};
+API.deleteMessages = function(messageIds){
+    request.del(API_CONFIG.DELETE_MESSAGES)
+        .set('Authorization', 'Bearer ' + SessionStore.getToken())
+        .send({
+            messageIds: messageIds
+        })
+        .end(function(err,data){
+            ServerResponseActionCreators.gotDeleteMessagesFeedback(data || err);
+        });
+
+};
+
+/// call
+API.getCallsList = function(query){
+    request.get(API_CONFIG.CALLS_LIST)
+        .query(query)
+        .set('Authorization', 'Bearer ' + SessionStore.getToken())
+        .end(function(err,data){
+            ServerResponseActionCreators.gotCallsList(data || err);
+        });
+};
+API.changeCallsStatus = function(callIds,status){
+    request.put(API_CONFIG.CHANGE_CALLS_STATUS)
+        .set('Authorization', 'Bearer ' + SessionStore.getToken())
+        .send({
+            callIds: callIds,
+            status: status
+        })
+        .end(function(err,data){
+            ServerResponseActionCreators.gotChangeCallsStatusFeedback(data || err);
+        });
 };
 
 
@@ -24638,7 +24804,7 @@ API.getArchiveMessages = function(query){
 
 module.exports = API;
 
-},{"../actions/ServerResponseActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","superagent":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/superagent/lib/client.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx":[function(require,module,exports){
+},{"../actions/ServerResponseActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","superagent":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/superagent/lib/client.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/19/15.
@@ -24923,6 +25089,57 @@ var Apk = React.createClass({displayName: "Apk",
 
 
 module.exports = Apk;
+},{"react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx":[function(require,module,exports){
+/**
+ *
+ * Created by jl on 2/26/15.
+ */
+
+var React = require('react/addons');
+
+
+var CheckableRow = React.createClass({displayName: "CheckableRow",
+    getInitialState: function(){
+        return {
+
+        };
+    },
+    render: function(){
+        var checked;
+        if(this.props.preChecked !== this.props._preChecked){
+            this.props._preChecked = this.props.preChecked;
+            checked = this.props.preChecked;
+        }else{
+            checked = this.state.checked;
+        }
+        var rowClass = checked ? 'active' : '';
+        if(this.props.className) rowClass = rowClass + ' ' + this.props.className;
+        //return (
+        //    <tr className={rowClass}>
+        //        <td><input type="checkbox" checked={checked} onChange={this.onChange}/></td>
+        //        {this.props.children}
+        //    </tr>
+        //);
+        return (
+            React.createElement("div", {className: rowClass}, 
+                React.createElement("input", {type: "checkbox", checked: checked, onChange: this.onChange}), 
+                this.props.children
+            )
+        );
+    },
+    onChange: function(event){
+        var checked = event.target.checked;
+        this.setState({
+            checked: checked
+        });
+        if(this.props.onSelectChanged){
+            this.props.onSelectChanged(checked,this.props.data._id);
+        }
+    }
+});
+
+module.exports = CheckableRow;
+
 },{"react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx":[function(require,module,exports){
 /**
  *
@@ -25114,21 +25331,49 @@ CONFIG.PAYLOAD_SOURCES = keyMirror(CONFIG.PAYLOAD_SOURCES);
 CONFIG.ACTION_TYPES = [
     'LOGIN_REQUEST',
     'LOGIN_RESPONSE',
-    'MESSAGE_LIST_REQUEST',
-    'MESSAGE_LIST_RESPONSE',
-    'MESSAGE_ARCHIVE_REQUEST',
-    'MESSAGE_ARCHIVE_RESPONSE'
+    'PROFILE_RESPONSE',
+    'MESSAGES_LIST_REQUEST',
+    'MESSAGES_LIST_RESPONSE',
+    'MESSAGES_ARCHIVE_REQUEST',
+    'MESSAGES_ARCHIVE_RESPONSE',
+    'MESSAGES_VIEW_CHANGE',
+    'MESSAGES_DELETED',
+    'MESSAGES_STATUS_CHANGED',
+    'CALLS_LIST_REQUEST',
+    'CALLS_LIST_RESPONSE',
+    'CALLS_ARCHIVE_REQUEST',
+    'CALLS_ARCHIVE_RESPONSE',
+    'CALLS_VIEW_CHANGE',
+    'CALLS_DELETED',
+    'CALLS_STATUS_CHANGED'
 ];
 CONFIG.ACTION_TYPES = keyMirror(CONFIG.ACTION_TYPES);
 
-/// API
-var domain = 'http://localhost:6002';
 
+
+
+/// API
+////////////// dev
+var domain = 'http://localhost:6002';
 CONFIG.APIS = {
-    LOGIN: domain + '/session',
-    MESSAGE_LIST: domain + '/message'
+    LOGIN: domain + '/sessions',
+    PROFILE: domain + '/profiles',
+    MESSAGES_LIST: domain + '/messages',
+    DELETE_MESSAGES: domain + '/messages',
+    CHANGE_MESSAGES_STATUS: domain + '/messages/status',
+
+    CALLS_LIST: domain + '/calls',
+    DELETE_CALLS: domain + '/calls',
+    CHANGE_CALLS_STATUS: domain + '/calls/status'
+
 };
 
+/////////// prop
+//domain = 'http://vincent.wenyejy.com';
+//CONFIG.APIS = {
+//    LOGIN: domain + '/Admin/User/login',
+//    MESSAGE_LIST: domain + '/Home/index/message'
+//};
 
 module.exports = CONFIG;
 
@@ -25172,8 +25417,8 @@ var SessionStore = require('../stores/SessionStore');
 var Authentication = {
     statics:{
         willTransitionTo: function(transition){
-            var user = SessionStore.getUser();
-            if(!user){
+            var token = SessionStore.getToken();
+            if(!token){
                 transition.redirect('entry');
             }
         }
@@ -25193,28 +25438,37 @@ var Link = Router.Link;
 
 var Authentication = require('../../mixins/Authentication');
 
-var SessionStorage = require('../../stores/SessionStore');
+var ServerRequestActionCreators = require('../../actions/ServerRequestActionCreators');
+
+var SessionStore = require('../../stores/SessionStore');
+var ProfileStore = require('../../stores/ProfileStore');
 
 
-function getUserFromStore(){
-    return SessionStorage.getUser();
+function getProfileFromStore(){
+    return ProfileStore.getProfile();
 }
 
 var Admin = React.createClass({displayName: "Admin",
     mixins: [Authentication],
     getInitialState: function(){
         return {
-            user:  getUserFromStore()
+            profile:  getProfileFromStore()
         };
     },
+    componentDidMount: function(){
+        ServerRequestActionCreators.requestProfile();
+        ProfileStore.addChangeListener(this.onChange);
+    },
+    componentWillUnmount: function(){
+        ProfileStore.removeChangeListener(this.onChange);
+    },
     render: function(){
-        var user = this.state.user;
-        var phone = user.phone;
+        var profile = this.state.profile;
         return (
             React.createElement("div", {className: "cover pt-extra"}, 
                 React.createElement("div", {className: "admin-menu flex-row between"}, 
                     React.createElement("div", null, 
-                        React.createElement("label", null, phone)
+                        React.createElement("span", {className: "label ml-extra label-primary pointer"}, "你好，", profile ? profile.phone : null)
                     ), 
                     React.createElement("ul", {className: "nav nav-tabs"}, 
                         React.createElement("li", null, 
@@ -25236,34 +25490,203 @@ var Admin = React.createClass({displayName: "Admin",
                 React.createElement(RouteHandler, null)
             )
         );
+    },
+    onChange: function () {
+        console.log('//// admin change listener, got profile from profileStore:');
+        this.setState({
+            profile: ProfileStore.getProfile()
+        });
     }
 });
 
 module.exports = Admin;
 
 
-},{"../../mixins/Authentication":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/mixins/Authentication.js","../../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx":[function(require,module,exports){
+},{"../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../mixins/Authentication":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/mixins/Authentication.js","../../stores/ProfileStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","../../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/21/15.
  */
-
 var React = require('react/addons');
 
+
+
+
+var ViewActionCreators = require('../../../actions/ViewActionCreators');
+var ServerRequestActionCreators = require('../../../actions/ServerRequestActionCreators');
+var CallStore = require('../../../stores/CallStore');
+
+
+var CheckableRow = require('../../../components/app/checkable-row.jsx');
+
+function getCallFromStore(){
+    return {
+        list: CallStore.getList(),
+        archive: CallStore.getArchive(),
+        view: CallStore.getView(),
+        selected: []
+    };
+}
+
 var Call = React.createClass({displayName: "Call",
-    render: function () {
+    getInitialState: function(){
+        return getCallFromStore();
+    },
+    componentWillMount: function(){
+        if(!this.state.list || !this.state.archive){
+            ServerRequestActionCreators.requestCalls();
+        }
+    },
+    componentDidMount: function(){
+        CallStore.addChangeListener(this.onChange);
+    },
+    componentWillUnmount: function(){
+        CallStore.removeChangeListener(this.onChange);
+    },
+    render: function(){
+
+        var self = this;
+        var View = null;
+        var _viewClass = 'btn btn-primary w-5';
+        var unreadClass = _viewClass;
+        var archiveClass = _viewClass;
+        var Menu = null;
+        var unreadCount = 0;
+
+
+        if(this.state.selected.length > 0){
+            Menu =
+                React.createElement("div", {className: "flex-row start ptb plr-sm"}, 
+                    React.createElement("input", {type: "checkbox", checked: this.state.selectAll, onChange: this.triggerAllSelection}), 
+                    React.createElement("div", {className: "m-0"}, 
+                        React.createElement("span", {className: "label label-primary pointer ml-lg", onClick: this.markCallsAsRead}, "标记为已读"), 
+                        React.createElement("span", {className: "label label-primary pointer ml-lg", onClick: this.markCallsAsUnread}, "标记为未读")
+                    )
+                );
+        }else{
+            Menu =
+                React.createElement("div", {className: "flex-row start ptb plr-sm"}, 
+                    React.createElement("input", {type: "checkbox", onChange: this.triggerAllSelection}), 
+                    React.createElement("span", {className: "flex-1 ml"}, "拨号者姓名"), 
+                    React.createElement("span", {className: "flex-2"}, "拨号者电话"), 
+                    React.createElement("span", {className: "flex-1"}, "时间")
+                );
+        }
+
+        (this.state.list || []).forEach(function(item){
+            if(item.status === 'P') unreadCount++;
+        });
+
+        if(this.state.view === 'archive'){
+            archiveClass += ' active';
+            if(this.state.archive){
+                this.state.archive.forEach(function (message) {
+
+                });
+            }else{
+                View =
+                    React.createElement("div", null
+                    );
+            }
+        }else{
+            unreadClass += ' active';
+            if(this.state.list){
+                View = this.state.list.map(function (call) {
+                    var date = (new Date(call.date)).toLocaleString();
+                    return (
+                        React.createElement(CheckableRow, {className: 'full-row flex-row between ' + (call.status === 'P' ? 'unread' : 'read'), preChecked: self.state.selected.indexOf(call._id) !== -1, key: call._id, data: call, onSelectChanged: self.onCallSelectChanged}, 
+                            React.createElement("span", {className: "flex-1 ml"}, call.caller_name || '未命名'), 
+                            React.createElement("span", {className: "flex-2"}, call.caller_phone), 
+                            React.createElement("span", {className: "flex-1"}, date)
+                        )
+                    );
+                });
+            }else{
+                View =
+                    React.createElement("div", null
+                    );
+            }
+        }
+
+
         return (
-            React.createElement("div", null, 
-                "Call"
+            React.createElement("div", {className: "plr-extra full-row"}, 
+                React.createElement("div", {className: "text-center w-10 ptb-lg bb light"}, 
+                    React.createElement("div", {className: "btn-group w-5"}, 
+                        React.createElement("label", {className: unreadClass, "data-view": "unread", onClick: this.switchView}, "未接来电", React.createElement("span", {className: "badge ml-lg"}, unreadCount)), 
+                        React.createElement("label", {className: archiveClass, "data-view": "archive", onClick: this.switchView}, "归档")
+                    )
+                ), 
+                React.createElement("div", {className: "full-row"}, 
+                    React.createElement("div", {className: "full-row"}, 
+                        Menu, 
+                        View
+                    )
+                )
             )
         );
+    },
+    onChange: function(){
+        this.setState(getCallFromStore());
+    },
+    switchView: function(event){
+        var view = event.target.attributes.getNamedItem('data-view');
+        view = view && view.value || 'unread';
+        if(view !== this.state.view){
+            this.setState({
+                view: view,
+                selectAll: false,
+                selected: []
+            });
+            ViewActionCreators.changeCallView(view);
+        }
+    },
+    onCallSelectChanged: function(selected,id){
+        var selectedIds = this.state.selected;
+        if(selected){
+            selectedIds.push(id);
+        } else {
+            selectedIds.splice(selectedIds.indexOf(id),1);
+        }
+        this.setState({
+            selected: selectedIds
+        });
+        console.log(this.state.selected);
+    },
+    triggerAllSelection: function(event){
+        var checked = event.target.checked;
+        var selectedIds = [];
+        if(checked){
+            selectedIds = this.state.list.map(function(call){
+                return call._id;
+            });
+        }
+        this.setState({
+            selectAll: checked,
+            selected: selectedIds
+        });
+        console.log(this.state.selected);
+    },
+    deleteCalls: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.deleteCalls(this.state.selected.join('|'));
+        }
+    },
+    markCallsAsRead: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.changeCallsStatus(this.state.selected.join('|'), 'R');
+        }
+    },
+    markCallsAsUnread: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.changeCallsStatus(this.state.selected.join('|'), 'P');
+        }
     }
 });
 
-
 module.exports = Call;
 
-},{"react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx":[function(require,module,exports){
+},{"../../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../../actions/ViewActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","../../../components/app/checkable-row.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","../../../stores/CallStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/21/15.
@@ -25301,7 +25724,197 @@ var File = React.createClass({displayName: "File",
 
 module.exports = File;
 
-},{"react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx":[function(require,module,exports){
+},{"react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx":[function(require,module,exports){
+/**
+ *
+ * Created by jl on 2/21/15.
+ */
+var React = require('react/addons');
+
+
+
+
+var ViewActionCreators = require('../../../actions/ViewActionCreators');
+var ServerRequestActionCreators = require('../../../actions/ServerRequestActionCreators');
+var MessageStore = require('../../../stores/MessageStore');
+
+
+var CheckableRow = require('../../../components/app/checkable-row.jsx');
+
+function getMessageFromStore(){
+    return {
+        list: MessageStore.getList(),
+        archive: MessageStore.getArchive(),
+        view: MessageStore.getView(),
+        selected: []
+    };
+}
+
+var Message = React.createClass({displayName: "Message",
+    getInitialState: function(){
+        return getMessageFromStore();
+    },
+    componentWillMount: function(){
+        if(!this.state.list || !this.state.archive){
+            ServerRequestActionCreators.requestMessages();
+        }
+    },
+    componentDidMount: function(){
+        MessageStore.addChangeListener(this.onChange);
+    },
+    componentWillUnmount: function(){
+        MessageStore.removeChangeListener(this.onChange);
+    },
+    render: function(){
+
+        var self = this;
+        var View = null;
+        var _viewClass = 'btn btn-primary w-5';
+        var unreadClass = _viewClass;
+        var archiveClass = _viewClass;
+        var Menu = null;
+        var unreadCount = 0;
+
+
+        if(this.state.selected.length > 0){
+            Menu =
+                React.createElement("tr", null, 
+                    React.createElement("td", {className: ""}, React.createElement("input", {type: "checkbox", checked: this.state.selectAll, onChange: this.triggerAllSelection})), 
+                    React.createElement("td", {colSpan: "3"}, 
+                        React.createElement("div", {className: "m-0"}, 
+                            React.createElement("span", {className: "label label-primary pointer ml-lg", onClick: this.markMessagesAsRead}, "标记为已读"), 
+                            React.createElement("span", {className: "label label-primary pointer ml-lg", onClick: this.markMessagesAsUnread}, "标记为未读")
+                        )
+                    )
+                );
+        }else{
+            Menu =
+                React.createElement("tr", null, 
+                    React.createElement("td", {className: ""}, React.createElement("input", {type: "checkbox", onChange: this.triggerAllSelection})), 
+                    React.createElement("td", {className: "w-2"}, "发送者"), 
+                    React.createElement("td", {className: "w-6"}, "内容"), 
+                    React.createElement("td", {className: "w-2"}, "时间")
+                );
+        }
+
+        (this.state.list || []).forEach(function(item){
+            if(item.status === 'P') unreadCount++;
+        });
+
+        if(this.state.view === 'archive'){
+            archiveClass += ' active';
+            if(this.state.archive){
+                this.state.archive.forEach(function (message) {
+
+                });
+            }else{
+                View =
+                    React.createElement("tr", null
+                    );
+            }
+        }else{
+            unreadClass += ' active';
+            if(this.state.list){
+                View = this.state.list.map(function (message) {
+                    var date = (new Date(message.date)).toLocaleString();
+                    return (
+                        React.createElement(CheckableRow, {className: message.status === 'P' ? 'unread' : 'read', preChecked: self.state.selected.indexOf(message._id) !== -1, key: message._id, data: message, onSelectChanged: self.onMessageSelectChanged}, 
+                            React.createElement("td", {className: "w-2"}, message.sender_phone), 
+                            React.createElement("td", {className: "w-6"}, message.content), 
+                            React.createElement("td", {className: "w-2"}, date)
+                        )
+                    );
+                });
+            }else{
+                View =
+                    React.createElement("tr", null
+                    );
+            }
+        }
+
+
+        return (
+            React.createElement("div", {className: "plr-extra"}, 
+                React.createElement("div", {className: "text-center w-10 ptb-lg bb light"}, 
+                    React.createElement("div", {className: "btn-group w-5"}, 
+                        React.createElement("label", {className: unreadClass, "data-view": "unread", onClick: this.switchView}, "未读短信 ", React.createElement("span", {className: "badge ml-lg"}, unreadCount)), 
+                        React.createElement("label", {className: archiveClass, "data-view": "archive", onClick: this.switchView}, "归档")
+                    )
+                ), 
+                React.createElement("div", null, 
+                    React.createElement("table", {className: "table table-hover"}, 
+                        React.createElement("thead", null, 
+                        Menu
+                        ), 
+                        React.createElement("tbody", null, 
+                        View
+                        )
+                    )
+                )
+            )
+        );
+    },
+    onChange: function(){
+        this.setState(getMessageFromStore());
+    },
+    switchView: function(event){
+        var view = event.target.attributes.getNamedItem('data-view');
+        view = view && view.value || 'unread';
+        if(view !== this.state.view){
+            this.setState({
+                view: view,
+                selectAll: false,
+                selected: []
+            });
+            ViewActionCreators.changeMessageView(view);
+        }
+    },
+    onMessageSelectChanged: function(selected,id){
+        var selectedIds = this.state.selected;
+        if(selected){
+            selectedIds.push(id);
+        } else {
+            selectedIds.splice(selectedIds.indexOf(id),1);
+        }
+        this.setState({
+            selected: selectedIds
+        });
+        console.log(this.state.selected);
+    },
+    triggerAllSelection: function(event){
+        var checked = event.target.checked;
+        var selectedIds = [];
+        if(checked){
+            selectedIds = this.state.list.map(function(message){
+                return message._id;
+            });
+        }
+        this.setState({
+            selectAll: checked,
+            selected: selectedIds
+        });
+        console.log(this.state.selected);
+    },
+    deleteMessages: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.deleteMessages(this.state.selected.join('|'));
+        }
+    },
+    markMessagesAsRead: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.changeMessagesStatus(this.state.selected.join('|'), 'R');
+        }
+    },
+    markMessagesAsUnread: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.changeMessagesStatus(this.state.selected.join('|'), 'P');
+        }
+    }
+});
+
+module.exports = Message;
+
+},{"../../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../../actions/ViewActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","../../../components/app/checkable-row.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","../../../stores/MessageStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/26/15.
@@ -25342,14 +25955,19 @@ var React = require('react/addons');
 
 
 
+var ViewActionCreators = require('../../../actions/ViewActionCreators');
 var ServerRequestActionCreators = require('../../../actions/ServerRequestActionCreators');
 var MessageStore = require('../../../stores/MessageStore');
 
 
+var CheckableRow = require('../../../components/app/checkable-row.jsx');
+
 function getMessageFromStore(){
     return {
         list: MessageStore.getList(),
-        archive: MessageStore.getArchive()
+        archive: MessageStore.getArchive(),
+        view: MessageStore.getView(),
+        selected: []
     };
 }
 
@@ -25359,7 +25977,7 @@ var Message = React.createClass({displayName: "Message",
     },
     componentWillMount: function(){
         if(!this.state.list || !this.state.archive){
-            ServerRequestActionCreators.requestMessage();
+            ServerRequestActionCreators.requestMessages();
         }
     },
     componentDidMount: function(){
@@ -25369,41 +25987,186 @@ var Message = React.createClass({displayName: "Message",
         MessageStore.removeChangeListener(this.onChange);
     },
     render: function(){
-        return (
-            React.createElement("div", {className: "plr-extra"}, 
-                React.createElement("div", {className: "text-center w-10 ptb-lg bb light"}, 
-                    React.createElement("div", {className: "btn-group w-5"}, 
-                        React.createElement("label", {className: "btn btn-primary w-5", onClick: this.switchView}, "未读短信 ", React.createElement("span", {className: "badge ml-lg"}, "1")), 
-                        React.createElement("label", {className: "btn btn-primary w-5", onClick: this.switchView}, "归档")
+
+        var self = this;
+        var View = null;
+        var _viewClass = 'btn btn-primary w-5';
+        var unreadClass = _viewClass;
+        var archiveClass = _viewClass;
+        var Menu = null;
+        var unreadCount = 0;
+
+
+        if(this.state.selected.length > 0){
+            Menu =
+                React.createElement("div", {className: "flex-row start ptb plr-sm"}, 
+                    React.createElement("input", {type: "checkbox", checked: this.state.selectAll, onChange: this.triggerAllSelection}), 
+                    React.createElement("div", {className: "m-0"}, 
+                        React.createElement("span", {className: "label label-primary pointer ml-lg", onClick: this.markMessagesAsRead}, "标记为已读"), 
+                        React.createElement("span", {className: "label label-primary pointer ml-lg", onClick: this.markMessagesAsUnread}, "标记为未读")
                     )
-                ), 
-                React.createElement("div", null, 
-                    React.createElement("table", {className: "table table-hover"}, 
-                        React.createElement("thead", null, 
-                            React.createElement("tr", null, 
-                                React.createElement("td", {className: ""}, '#'), 
-                                React.createElement("td", {className: "w-2"}, "发送者"), 
-                                React.createElement("td", {className: "w-6"}, "内容"), 
-                                React.createElement("td", {className: "w-1"}, "时间")
+                );
+        }else{
+            Menu =
+                React.createElement("div", {className: "flex-row start ptb plr-sm"}, 
+                    React.createElement("input", {type: "checkbox", onChange: this.triggerAllSelection}), 
+                    React.createElement("span", {className: "flex-1 ml"}, "发送者"), 
+                    React.createElement("span", {className: "flex-2"}, "内容"), 
+                    React.createElement("span", {className: "flex-1"}, "时间")
+                );
+        }
+
+        (this.state.list || []).forEach(function(item){
+            if(item.status === 'P') unreadCount++;
+        });
+
+        if(this.state.view === 'archive'){
+            archiveClass += ' active';
+            if(this.state.archive){
+                View = this.state.archive.map(function (archive) {
+                    var Items = archive.items.map(function(message){
+                        return (
+                            React.createElement(CheckableRow, {className: 'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read'), preChecked: self.state.selected.indexOf(message._id) !== -1, key: message._id, data: message, onSelectChanged: self.onMessageSelectChanged}, 
+                                React.createElement("div", {className: "flex-1 ml"}, message.sender_phone), 
+                                React.createElement("div", {className: "flex-2"}, message.content), 
+                                React.createElement("div", {className: "flex-1"}, (new Date(message.date)).toLocaleString())
+                            )
+                        );
+                    });
+                    return (
+                        React.createElement("div", {key: archive.group, className: "panel panel-primary"}, 
+                            React.createElement("div", {className: "panel-heading pointer flex-row between", onClick: self.toggleArchiveStatus}, React.createElement("span", null, archive.group + ' (' + archive.items.length + ')'), React.createElement("span", {className: "fa fa-caret-right"})), 
+                            React.createElement("div", {className: "panel-body"}, 
+                            Items
                             )
                         )
+                    );
+                });
+            }else{
+                View =
+                    React.createElement("div", null
+                    );
+            }
+        }else{
+            unreadClass += ' active';
+            if(this.state.list){
+                View = this.state.list.map(function (message) {
+                    var date = (new Date(message.date)).toLocaleString();
+                    return (
+                        React.createElement(CheckableRow, {className: 'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read'), preChecked: self.state.selected.indexOf(message._id) !== -1, key: message._id, data: message, onSelectChanged: self.onMessageSelectChanged}, 
+                            React.createElement("div", {className: "flex-1 ml"}, message.sender_phone), 
+                            React.createElement("div", {className: "flex-2"}, message.content), 
+                            React.createElement("div", {className: "flex-1"}, date)
+                        )
+                    );
+                });
+            }else{
+                View =
+                    React.createElement("div", null
+                    );
+            }
+        }
+
+
+        return (
+            React.createElement("div", {className: "plr-extra full-row"}, 
+                React.createElement("div", {className: "text-center w-10 ptb-lg bb light"}, 
+                    React.createElement("div", {className: "btn-group w-5"}, 
+                        React.createElement("label", {className: unreadClass, "data-view": "unread", onClick: this.switchView}, "未读短信 ", React.createElement("span", {className: "badge ml-lg"}, unreadCount)), 
+                        React.createElement("label", {className: archiveClass, "data-view": "archive", onClick: this.switchView}, "归档")
+                    )
+                ), 
+                React.createElement("div", {className: "full-row"}, 
+                    React.createElement("div", {className: "full-row"}, 
+                        Menu, 
+                        View
                     )
                 )
             )
         );
     },
     onChange: function(){
-        console.log('/// message change event!');
         this.setState(getMessageFromStore());
+        console.log(this.state);
     },
-    switchView: function(view){
-        console.log(view);
+    switchView: function(event){
+        var view = event.target.attributes.getNamedItem('data-view');
+        view = view && view.value || 'unread';
+        if(view !== this.state.view){
+            this.setState({
+                view: view,
+                selectAll: false,
+                selected: []
+            });
+            if(view === 'archive'){
+                ServerRequestActionCreators.requestMessages({
+                    archive: true
+                });
+            }
+            ViewActionCreators.changeMessageView(view);
+        }
+    },
+    onMessageSelectChanged: function(selected,id){
+        var selectedIds = this.state.selected;
+        if(selected){
+            selectedIds.push(id);
+        } else {
+            selectedIds.splice(selectedIds.indexOf(id),1);
+        }
+        this.setState({
+            selected: selectedIds
+        });
+        console.log(this.state.selected);
+    },
+    triggerAllSelection: function(event){
+        var checked = event.target.checked;
+        var selectedIds = [];
+        if(checked){
+            selectedIds = this.state.list.map(function(message){
+                return message._id;
+            });
+        }
+        this.setState({
+            selectAll: checked,
+            selected: selectedIds
+        });
+    },
+    deleteMessages: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.deleteMessages(this.state.selected.join('|'));
+        }
+    },
+    markMessagesAsRead: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.changeMessagesStatus(this.state.selected.join('|'), 'R');
+        }
+    },
+    markMessagesAsUnread: function(){
+        if(this.state.selected.length > 0){
+            ServerRequestActionCreators.changeMessagesStatus(this.state.selected.join('|'), 'P');
+        }
+    },
+    toggleArchiveStatus: function(event){
+        var target = event.currentTarget;
+        var body = target.nextElementSibling;
+        if(target.classList.contains('panel-heading')){
+            if(body.classList.contains('open')){
+                target.lastChild.classList.add('fa-caret-right');
+                target.lastChild.classList.remove('fa-caret-down');
+                body.style.height = 0;
+            }else{
+                target.lastChild.classList.remove('fa-caret-right');
+                target.lastChild.classList.add('fa-caret-down');
+                body.style.height = body.scrollHeight + 'px';
+            }
+            body.classList.toggle('open');
+        }
     }
 });
 
 module.exports = Message;
 
-},{"../../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../../stores/MessageStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx":[function(require,module,exports){
+},{"../../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../../actions/ViewActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","../../../components/app/checkable-row.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","../../../stores/MessageStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/26/15.
@@ -25457,6 +26220,9 @@ function getUserInfoFromStore(){
 }
 function getLoginError(){
     return SessionStore.getError();
+}
+function getTokenFromStore(){
+    return SessionStore.getToken();
 }
 
 
@@ -25566,9 +26332,9 @@ var Login = React.createClass({displayName: "Login",
         });
     },
     onChange: function(){
-        var user = getUserInfoFromStore();
-
-        if(user){
+        var token = getTokenFromStore();
+        console.log(token);
+        if(token){
             this.setState({
                 loginState: 'normal'
             });
@@ -25585,7 +26351,7 @@ var Login = React.createClass({displayName: "Login",
 
 module.exports = Login;
 
-},{"../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../components/alerts/alert.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","../components/app/apk.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","../components/app/intro.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","../components/app/logo.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","../components/forms/elements/paper-input.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","../components/forms/elements/reactive-submit":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js":[function(require,module,exports){
+},{"../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../components/alerts/alert.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","../components/app/apk.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","../components/app/intro.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","../components/app/logo.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","../components/forms/elements/paper-input.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","../components/forms/elements/reactive-submit":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/26/15.
@@ -25599,16 +26365,131 @@ var ACTION_TYPES = require('../configs/app-config').ACTION_TYPES;
 
 var _list = null;
 var _archive = null;
+var _view = 'unread';
 
 function gotList(list){
     console.log('////// got list');
     console.log(list);
-    _list = list && list.body;
+    _list = list && list.body && list.body.list;
 }
 function gotArchive(){
 
 }
+function changeMessageView(view){
+    _view = view;
+}
+function callStatusChanged(data){
+    console.log('/// message status change, process in messageStore');
+    console.log(data);
+    data = data && data.body || {callIds: ''};
 
+    function changeCallStatus(call){
+        if(data.callIds.indexOf(call._id) !== -1){
+            call.status = data.toStatus;
+        }
+    }
+    (_list || []).forEach(changeCallStatus);
+    (_archive || []).forEach(changeCallStatus);
+
+}
+function deletedCalls(feedback){
+    console.log('/// message deleted, process in messageStore');
+    console.log(data);
+}
+
+
+var CallStore = createStore({
+    getList: function(){
+        return _list;
+    },
+    getArchive: function(){
+        return _archive;
+    },
+    getView: function(){
+        return _view;
+    }
+});
+
+
+CallStore.dispatchToken = AppDispatcher.register(function(payload){
+
+    var action = payload.action;
+    switch (action.type){
+        case ACTION_TYPES.CALLS_LIST_RESPONSE:
+            gotList(action.data);
+            CallStore.emitChange();
+            break;
+        case ACTION_TYPES.CALLS_ARCHIVE_RESPONSE:
+            break;
+        case ACTION_TYPES.CALLS_VIEW_CHANGE:
+            changeMessageView(action.data);
+            CallStore.emitChange();
+            break;
+        case ACTION_TYPES.CALLS_STATUS_CHANGED:
+            callStatusChanged(action.data);
+            CallStore.emitChange();
+            break;
+        case ACTION_TYPES.CALLS_DELETED:
+            deletedCalls(action.data);
+            break;
+    }
+
+});
+
+module.exports = CallStore;
+
+},{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../dispatchers/AppDispatcher":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","../utils/createStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js":[function(require,module,exports){
+/**
+ *
+ * Created by jl on 2/26/15.
+ */
+
+
+var AppDispatcher = require('../dispatchers/AppDispatcher');
+var createStore = require('../utils/createStore');
+
+var ACTION_TYPES = require('../configs/app-config').ACTION_TYPES;
+
+var _list = null;
+var _archive = null;
+var _view = 'unread';
+
+function gotList(list){
+    console.log('////// got list');
+    console.log(list);
+    _list = list && list.body && list.body.list;
+}
+function gotArchive(data){
+    console.log('///////// got message archive');
+    data = data.body;
+    console.log(data);
+    _archive = data && data.status && data.archive;
+    console.log(_archive);
+}
+function changeMessageView(view){
+   _view = view;
+}
+function messageStatusChanged(data){
+    console.log('/// message status change, process in messageStore');
+    console.log(data);
+    data = data && data.body || {messageIds: ''};
+
+    function changeMessageStatus(message){
+        if(data.messageIds.indexOf(message._id) !== -1){
+            message.status = data.toStatus;
+        }
+    }
+    (_list || []).forEach(changeMessageStatus);
+
+    (_archive || []).forEach(function(archive){
+        (archive.items || []).forEach(changeMessageStatus);
+    });
+
+}
+function deletedMessages(feedback){
+    console.log('/// message deleted, process in messageStore');
+    console.log(data);
+}
 
 
 var MessageStore = createStore({
@@ -25617,6 +26498,9 @@ var MessageStore = createStore({
     },
     getArchive: function(){
         return _archive;
+    },
+    getView: function(){
+        return _view;
     }
 });
 
@@ -25625,11 +26509,24 @@ MessageStore.dispatchToken = AppDispatcher.register(function(payload){
 
     var action = payload.action;
     switch (action.type){
-        case ACTION_TYPES.MESSAGE_LIST_RESPONSE:
+        case ACTION_TYPES.MESSAGES_LIST_RESPONSE:
             gotList(action.data);
             MessageStore.emitChange();
             break;
-        case ACTION_TYPES.MESSAGE_ARCHIVE_RESPONSE:
+        case ACTION_TYPES.MESSAGES_ARCHIVE_RESPONSE:
+            gotArchive(action.data);
+            MessageStore.emitChange();
+            break;
+        case ACTION_TYPES.MESSAGES_VIEW_CHANGE:
+            changeMessageView(action.data);
+            MessageStore.emitChange();
+            break;
+        case ACTION_TYPES.MESSAGES_STATUS_CHANGED:
+            messageStatusChanged(action.data);
+            MessageStore.emitChange();
+            break;
+        case ACTION_TYPES.MESSAGES_DELETED:
+            deletedMessages(action.data);
             break;
     }
 
@@ -25637,6 +26534,60 @@ MessageStore.dispatchToken = AppDispatcher.register(function(payload){
 
 module.exports = MessageStore;
 
+},{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../dispatchers/AppDispatcher":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","../utils/createStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js":[function(require,module,exports){
+/**
+ *
+ * Created by jl on 2/19/15.
+ */
+var AppDispatcher = require('../dispatchers/AppDispatcher');
+var createStore = require('../utils/createStore');
+
+var ACTION_TYPES = require('../configs/app-config').ACTION_TYPES;
+
+
+
+var _profile = null;
+var _error;
+
+
+function gotProfile(feedback){
+    console.log('////////// profile store');
+    console.log(feedback);
+    window.sessionStorage.removeItem('profile');
+    feedback = feedback && feedback.body || {};
+    if(feedback.status === 1){
+        _profile = feedback.profile;
+        window.sessionStorage.setItem('profile',JSON.stringify(_profile));
+    } else {
+        _error = feedback.msg;
+    }
+}
+
+
+var ProfileStore = createStore({
+    getError: function(){
+        return _error;
+    },
+    getProfile: function(){
+        _profile = _profile || window.sessionStorage.getItem('profile');
+        return _profile;
+    }
+});
+
+ProfileStore.dispatchToken = AppDispatcher.register(function(payload){
+    var action = payload.action;
+    switch (action.type){
+        case ACTION_TYPES.PROFILE_RESPONSE:
+            gotProfile(action.data);
+            ProfileStore.emitChange();
+            break;
+    }
+});
+
+
+
+
+module.exports = ProfileStore;
 },{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../dispatchers/AppDispatcher":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","../utils/createStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js":[function(require,module,exports){
 /**
  *
@@ -25649,8 +26600,8 @@ var ACTION_TYPES = require('../configs/app-config').ACTION_TYPES;
 
 
 
-var _user = null;
 var _error = null;
+var _token;
 
 
 function validateLoginFeedback(feedback){
@@ -25658,22 +26609,22 @@ function validateLoginFeedback(feedback){
     console.log(feedback);
     window.sessionStorage.removeItem('user');
     feedback = feedback && feedback.body || {};
-    if(feedback.status){
-        _user = feedback.user;
-        window.sessionStorage.setItem('user',JSON.stringify(_user));
+    if(feedback.status === 1){
+        _token = feedback.token;
+        window.sessionStorage.setItem('token',_token);
     } else {
-        _error = feedback;
+        _error = feedback.msg;
     }
 }
 
 
 var SessionStore = createStore({
-    getUser: function(){
-        _user = _user || JSON.parse(window.sessionStorage.getItem('user'));
-        return _user;
-    },
     getError: function(){
         return _error;
+    },
+    getToken: function(){
+        _token = _token || window.sessionStorage.getItem('token');
+        return _token;
     },
     isLogin: function(){
 
@@ -25740,4 +26691,4 @@ module.exports = function(keys){
     return obj;
 };
 
-},{}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx"]);
+},{}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx"]);

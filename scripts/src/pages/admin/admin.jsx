@@ -9,28 +9,37 @@ var Link = Router.Link;
 
 var Authentication = require('../../mixins/Authentication');
 
-var SessionStorage = require('../../stores/SessionStore');
+var ServerRequestActionCreators = require('../../actions/ServerRequestActionCreators');
+
+var SessionStore = require('../../stores/SessionStore');
+var ProfileStore = require('../../stores/ProfileStore');
 
 
-function getUserFromStore(){
-    return SessionStorage.getUser();
+function getProfileFromStore(){
+    return ProfileStore.getProfile();
 }
 
 var Admin = React.createClass({
     mixins: [Authentication],
     getInitialState: function(){
         return {
-            user:  getUserFromStore()
+            profile:  getProfileFromStore()
         };
     },
+    componentDidMount: function(){
+        ServerRequestActionCreators.requestProfile();
+        ProfileStore.addChangeListener(this.onChange);
+    },
+    componentWillUnmount: function(){
+        ProfileStore.removeChangeListener(this.onChange);
+    },
     render: function(){
-        var user = this.state.user;
-        var phone = user.phone;
+        var profile = this.state.profile;
         return (
             <div className="cover pt-extra">
                 <div className="admin-menu flex-row between">
                     <div>
-                        <label>{phone}</label>
+                        <span className="label ml-extra label-primary pointer">你好，{profile ? profile.phone : null}</span>
                     </div>
                     <ul className="nav nav-tabs">
                         <li>
@@ -52,6 +61,12 @@ var Admin = React.createClass({
                 <RouteHandler></RouteHandler>
             </div>
         );
+    },
+    onChange: function () {
+        console.log('//// admin change listener, got profile from profileStore:');
+        this.setState({
+            profile: ProfileStore.getProfile()
+        });
     }
 });
 

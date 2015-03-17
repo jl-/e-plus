@@ -9,8 +9,8 @@ var ACTION_TYPES = require('../configs/app-config').ACTION_TYPES;
 
 
 
-var _user = null;
 var _error = null;
+var _token;
 
 
 function validateLoginFeedback(feedback){
@@ -18,22 +18,22 @@ function validateLoginFeedback(feedback){
     console.log(feedback);
     window.sessionStorage.removeItem('user');
     feedback = feedback && feedback.body || {};
-    if(feedback.status){
-        _user = feedback.user;
-        window.sessionStorage.setItem('user',JSON.stringify(_user));
+    if(feedback.status === 1){
+        _token = feedback.token;
+        window.sessionStorage.setItem('token',_token);
     } else {
-        _error = feedback;
+        _error = feedback.msg;
     }
 }
 
 
 var SessionStore = createStore({
-    getUser: function(){
-        _user = _user || JSON.parse(window.sessionStorage.getItem('user'));
-        return _user;
-    },
     getError: function(){
         return _error;
+    },
+    getToken: function(){
+        _token = _token || window.sessionStorage.getItem('token');
+        return _token;
     },
     isLogin: function(){
 

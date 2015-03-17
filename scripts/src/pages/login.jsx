@@ -24,6 +24,9 @@ function getUserInfoFromStore(){
 function getLoginError(){
     return SessionStore.getError();
 }
+function getTokenFromStore(){
+    return SessionStore.getToken();
+}
 
 
 var Login = React.createClass({
@@ -132,9 +135,9 @@ var Login = React.createClass({
         });
     },
     onChange: function(){
-        var user = getUserInfoFromStore();
-
-        if(user){
+        var token = getTokenFromStore();
+        console.log(token);
+        if(token){
             this.setState({
                 loginState: 'normal'
             });

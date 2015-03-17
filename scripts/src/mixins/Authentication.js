@@ -8,8 +8,8 @@ var SessionStore = require('../stores/SessionStore');
 var Authentication = {
     statics:{
         willTransitionTo: function(transition){
-            var user = SessionStore.getUser();
-            if(!user){
+            var token = SessionStore.getToken();
+            if(!token){
                 transition.redirect('entry');
             }
         }
