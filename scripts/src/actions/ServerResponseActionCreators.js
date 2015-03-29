@@ -60,11 +60,37 @@ ServerResponseActionCreators.gotCallsList = function(calls){
         data: calls
     });
 };
+ServerResponseActionCreators.gotCallsArchive = function(calls){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CALLS_ARCHIVE_RESPONSE,
+        data: calls
+    });
+};
 ServerResponseActionCreators.gotChangeCallsStatusFeedback = function (feedback) {
     AppDispatcher.dispatchAction({
         type: ACTION_TYPES.CALLS_STATUS_CHANGED,
         data: feedback
     });
 };
+ServerResponseActionCreators.gotDeleteCallsFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CALLS_DELETED,
+        data: feedback
+    });
+};
 
+
+/// contact
+ServerResponseActionCreators.gotContactsList = function(contacts){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CONTACTS_LIST_RESPONSE,
+        data: contacts
+    });
+};
+ServerResponseActionCreators.gotContactsArchive = function(contacts){
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CONTACTS_ARCHIVE_RESPONSE,
+        data: contacts
+    });
+};
 module.exports = ServerResponseActionCreators;

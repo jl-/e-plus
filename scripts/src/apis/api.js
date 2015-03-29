@@ -90,7 +90,11 @@ API.getCallsList = function(query){
         .query(query)
         .set('Authorization', 'Bearer ' + SessionStore.getToken())
         .end(function(err,data){
-            ServerResponseActionCreators.gotCallsList(data || err);
+            if(query && query.archive){
+                ServerResponseActionCreators.gotCallsArchive(data || err);
+            }else{
+                ServerResponseActionCreators.gotCallsList(data || err);
+            }
         });
 };
 API.changeCallsStatus = function(callIds,status){
@@ -104,8 +108,46 @@ API.changeCallsStatus = function(callIds,status){
             ServerResponseActionCreators.gotChangeCallsStatusFeedback(data || err);
         });
 };
+API.deleteCalls = function(callIds){
+    request.del(API_CONFIG.DELETE_CALLS)
+        .set('Authorization', 'Bearer ' + SessionStore.getToken())
+        .send({
+            callIds: callIds
+        })
+        .end(function(err,data){
+            ServerResponseActionCreators.gotDeleteCallsFeedback(data || err);
+        });
+
+};
 
 
+
+/// contact
+
+API.getContactsList = function(query){
+    console.log('api request contact');
+    request.get(API_CONFIG.CONTACTS_LIST)
+    .query(query)
+    .set('Authorization', 'Bearer ' + SessionStore.getToken())
+    .end(function(err,data){
+        if(query && query.archive){
+            ServerResponseActionCreators.gotContactsArchive(data || err);
+        }else{
+            ServerResponseActionCreators.gotContactsList(data || err);
+        }
+    });
+};
+API.deleteContacts = function(contactIds){
+    request.del(API_CONFIG.DELETE_CONTACTS)
+        .set('Authorization', 'Bearer ' + SessionStore.getToken())
+        .send({
+            callIds: contactIds
+        })
+        .end(function(err,data){
+            ServerResponseActionCreators.gotDeleteContactsFeedback(data || err);
+        });
+
+};
 
 
 module.exports = API;

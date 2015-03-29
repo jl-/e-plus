@@ -9,7 +9,8 @@
 /* admin
 ==============================*/
 .admin-menu{
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #ddd;
+  font-weight: bolder;
   & > .nav-tabs{
     margin-bottom: -1px;
   }
@@ -38,15 +39,42 @@
     background-color: #f4f4f4;
   }
 }
+.badge.text-danger{
+  color: red;
+}
+.form-control-feedback{
+  pointer-events: auto;
+}
+
+.table-header{
+//  background-color: #f6f6f6;
+  background-color: rgb(55,123,181);
+  color: white;
+  border-bottom: 1px solid #ccc;
+  font-weight: bolder;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
 
 input[type="checkbox"]{
   margin-top: 0;
 }
 
-
+.archive-heading{
+  @extend .ptb;
+  font-weight: bolder;
+  font-size: 16px;
+  background-color: rgb(250,250,250);
+  border-bottom: 1px solid #efefef;
+  color: #444;
+}
+.archive-body,
 .panel-body{
   height: 0;
   overflow: hidden;
   padding: 0;
   transition: height 0.4s ease;
+}
+.panel{
+  margin-bottom: 1px;
 }

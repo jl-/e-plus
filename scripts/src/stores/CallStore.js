@@ -12,20 +12,33 @@ var ACTION_TYPES = require('../configs/app-config').ACTION_TYPES;
 var _list = null;
 var _archive = null;
 var _view = 'unread';
+var _unread;
 
 function gotList(list){
     console.log('////// got list');
     console.log(list);
     _list = list && list.body && list.body.list;
+    if(_list){
+        _unread = _list.filter(filterUnread);
+    }
 }
-function gotArchive(){
+function gotArchive(data){
+    console.log('call archive');
+    data = data.body;
+    console.log(data);
+    _archive = data && data.status && data.archive;
+    console.log(_archive);
+}
 
+function filterUnread(data){
+    return data && data.status === 'P';
 }
-function changeMessageView(view){
+
+
+function changeCallView(view){
     _view = view;
 }
 function callStatusChanged(data){
-    console.log('/// message status change, process in messageStore');
     console.log(data);
     data = data && data.body || {callIds: ''};
 
@@ -35,12 +48,30 @@ function callStatusChanged(data){
         }
     }
     (_list || []).forEach(changeCallStatus);
-    (_archive || []).forEach(changeCallStatus);
 
+    _unread = (_list || []).filter(filterUnread);
+
+    (_archive || []).forEach(function(archive){
+        (archive.items || []).forEach(changeMessageStatus);
+    });
 }
 function deletedCalls(feedback){
-    console.log('/// message deleted, process in messageStore');
-    console.log(data);
+    var deletedIds = feedback && feedback.body && feedback.body.deletedIds;
+    if(!deletedIds) return;
+    deletedIds = deletedIds.split('|');
+
+
+    function filterCall(call){
+        return deletedIds.indexOf(call._id) === -1;
+    }
+
+    _list = (_list || []).filter(filterCall);
+    _unread = (_unread || []).filter(filterCall);
+
+    (_archive || []).forEach(function(archive){
+        archive.items = archive.items.filter(filterCall);
+    });
+
 }
 
 
@@ -53,6 +84,9 @@ var CallStore = createStore({
     },
     getView: function(){
         return _view;
+    },
+    getUnread: function(){
+        return _unread;
     }
 });
 
@@ -66,9 +100,11 @@ CallStore.dispatchToken = AppDispatcher.register(function(payload){
             CallStore.emitChange();
             break;
         case ACTION_TYPES.CALLS_ARCHIVE_RESPONSE:
+            gotArchive(action.data);
+            CallStore.emitChange();
             break;
         case ACTION_TYPES.CALLS_VIEW_CHANGE:
-            changeMessageView(action.data);
+            changeCallView(action.data);
             CallStore.emitChange();
             break;
         case ACTION_TYPES.CALLS_STATUS_CHANGED:
@@ -77,6 +113,7 @@ CallStore.dispatchToken = AppDispatcher.register(function(payload){
             break;
         case ACTION_TYPES.CALLS_DELETED:
             deletedCalls(action.data);
+            CallStore.emitChange();
             break;
     }
 

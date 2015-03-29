@@ -62,6 +62,24 @@ ServerRequestActionCreators.changeCallsStatus = function(callIds,status){
     API.changeCallsStatus(callIds,status);
 };
 ServerRequestActionCreators.deleteCalls = function(callIds){
-    API.deleteMessages(callIds);
+    API.deleteCalls(callIds);
 };
+
+
+//==========
+// contact
+////////////////////
+ServerRequestActionCreators.requestContacts = function(query){
+    API.getContactsList(query);
+};
+ServerRequestActionCreators.deleteContacts = function(contactIds){
+    API.deleteContacts(contactIds);
+};
+ServerRequestActionCreators.deleteContacts = function(contactIds){
+    API.deleteContacts(contactIds);
+};
+ServerRequestActionCreators.deleteContacts = function(contactIds){
+    API.deleteContacts(contactIds);
+};
+
 module.exports = ServerRequestActionCreators;

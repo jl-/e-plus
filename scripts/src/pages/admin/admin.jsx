@@ -7,6 +7,8 @@ var Router = require('react-router');
 var RouteHandler = Router.RouteHandler;
 var Link = Router.Link;
 
+var mqtt = require('../../utils/mqtt');
+
 var Authentication = require('../../mixins/Authentication');
 
 var ServerRequestActionCreators = require('../../actions/ServerRequestActionCreators');

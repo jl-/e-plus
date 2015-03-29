@@ -39,7 +39,13 @@ CONFIG.ACTION_TYPES = [
     'CALLS_ARCHIVE_RESPONSE',
     'CALLS_VIEW_CHANGE',
     'CALLS_DELETED',
-    'CALLS_STATUS_CHANGED'
+    'CALLS_STATUS_CHANGED',
+
+
+    'CONTACTS_LIST_REQUEST',
+    'CONTACTS_LIST_RESPONSE',
+    'CONTACTS_ARCHIVE_RESPONSE',
+    'CONTACTS_DELETED'
 ];
 CONFIG.ACTION_TYPES = keyMirror(CONFIG.ACTION_TYPES);
 
@@ -51,6 +57,7 @@ CONFIG.ACTION_TYPES = keyMirror(CONFIG.ACTION_TYPES);
 var domain = 'http://localhost:6002';
 CONFIG.APIS = {
     LOGIN: domain + '/sessions',
+    //LOGIN: 'http://ef-server.jlxy.cz/sessions',
     PROFILE: domain + '/profiles',
     MESSAGES_LIST: domain + '/messages',
     DELETE_MESSAGES: domain + '/messages',
@@ -58,8 +65,10 @@ CONFIG.APIS = {
 
     CALLS_LIST: domain + '/calls',
     DELETE_CALLS: domain + '/calls',
-    CHANGE_CALLS_STATUS: domain + '/calls/status'
+    CHANGE_CALLS_STATUS: domain + '/calls/status',
 
+    CONTACTS_LIST: domain + '/contacts',
+    DELETE_CONTACTS: domain + 'contacts'
 };
 
 /////////// prop

@@ -13,15 +13,18 @@ var MessageStore = require('../../../stores/MessageStore');
 
 
 var CheckableRow = require('../../../components/app/checkable-row.jsx');
+var SearchFilter = require('../../../components/app/search-filter.jsx');
 
 function getMessageFromStore(){
     return {
         list: MessageStore.getList(),
+        unreadList: MessageStore.getUnread(),
         archive: MessageStore.getArchive(),
         view: MessageStore.getView(),
         selected: []
     };
 }
+
 
 var Message = React.createClass({
     getInitialState: function(){
@@ -51,24 +54,25 @@ var Message = React.createClass({
 
         if(this.state.selected.length > 0){
             Menu =
-                <div className="flex-row start ptb plr-sm">
+                <div className="flex-row start ptb plr-sm table-header">
                     <input type="checkbox" checked={this.state.selectAll} onChange={this.triggerAllSelection}/>
                     <div className="m-0">
+                        <span className="label label-primary pointer ml-lg" onClick={this.deleteMessages}>删除</span>
                         <span className="label label-primary pointer ml-lg" onClick={this.markMessagesAsRead}>标记为已读</span>
                         <span className="label label-primary pointer ml-lg" onClick={this.markMessagesAsUnread}>标记为未读</span>
                     </div>
                 </div>;
         }else{
             Menu =
-                <div className="flex-row start ptb plr-sm">
+                <div className="flex-row start ptb plr-sm table-header">
                     <input type="checkbox" onChange={this.triggerAllSelection}/>
-                    <span className="flex-1 ml">发送者</span>
-                    <span className="flex-2">内容</span>
-                    <span className="flex-1">时间</span>
+                    <span className="flex-1 ml text-left">发送者</span>
+                    <span className="flex-2 text-left">内容</span>
+                    <span className="flex-1 text-left">时间</span>
                 </div>;
         }
 
-        (this.state.list || []).forEach(function(item){
+        (this.state.unreadList || []).forEach(function(item){
             if(item.status === 'P') unreadCount++;
         });
 
@@ -79,9 +83,9 @@ var Message = React.createClass({
                     var Items = archive.items.map(function(message){
                         return (
                             <CheckableRow className={'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read')} preChecked={self.state.selected.indexOf(message._id) !== -1} key={message._id} data={message} onSelectChanged={self.onMessageSelectChanged}>
-                                <div className="flex-1 ml">{message.sender_phone}</div>
-                                <div className="flex-2">{message.content}</div>
-                                <div className="flex-1">{(new Date(message.date)).toLocaleString()}</div>
+                                <div className="flex-1 ml text-left">{message.sender_phone}</div>
+                                <div className="flex-2 text-left">{message.content}</div>
+                                <div className="flex-1 text-left">{(new Date(message.date)).toLocaleString()}</div>
                             </CheckableRow>
                         );
                     });
@@ -101,14 +105,14 @@ var Message = React.createClass({
             }
         }else{
             unreadClass += ' active';
-            if(this.state.list){
-                View = this.state.list.map(function (message) {
+            if(this.state.unreadList){
+                View = this.state.unreadList.map(function (message) {
                     var date = (new Date(message.date)).toLocaleString();
                     return (
                         <CheckableRow className={'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read')} preChecked={self.state.selected.indexOf(message._id) !== -1} key={message._id} data={message} onSelectChanged={self.onMessageSelectChanged}>
-                            <div className="flex-1 ml">{message.sender_phone}</div>
-                            <div className="flex-2">{message.content}</div>
-                            <div className="flex-1">{date}</div>
+                            <div className="flex-1 ml text-left">{message.sender_phone}</div>
+                            <div className="flex-2 text-left">{message.content}</div>
+                            <div className="flex-1 text-left">{date}</div>
                         </CheckableRow>
                     );
                 });
@@ -120,18 +124,22 @@ var Message = React.createClass({
         }
 
 
+
         return (
             <div className="plr-extra full-row">
-                <div className="text-center w-10 ptb-lg bb light">
+                <div className="text-center w-10 ptb-lg">
                     <div className="btn-group w-5">
-                        <label className={unreadClass} data-view="unread" onClick={this.switchView}>未读短信 <span className="badge ml-lg">{unreadCount}</span></label>
-                        <label className={archiveClass} data-view="archive" onClick={this.switchView}>归档</label>
+                        <label className={unreadClass} data-view="unread" onClick={this.switchView}>未读短信<span className="badge ml-lg text-danger">{unreadCount}</span></label>
+                        <label className={archiveClass} data-view="archive" onClick={this.switchView}>归档<span className="badge ml-lg">{this.state.list ? this.state.list.length : 0}</span></label>
                     </div>
-                </div>
-                <div className="full-row">
+
+                    <SearchFilter placeholder="姓名｜手机号码｜短信内容" onFilterChange={this.filterMessage} onFilterClear={this.onMessageFilterClear}></SearchFilter>
+
                     <div className="full-row">
-                        {Menu}
-                        {View}
+                        <div className="full-row">
+                            {Menu}
+                            {View}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -150,7 +158,7 @@ var Message = React.createClass({
                 selectAll: false,
                 selected: []
             });
-            if(view === 'archive'){
+            if(view === 'archive' && !this.state.archive){
                 ServerRequestActionCreators.requestMessages({
                     archive: true
                 });
@@ -174,7 +182,8 @@ var Message = React.createClass({
         var checked = event.target.checked;
         var selectedIds = [];
         if(checked){
-            selectedIds = this.state.list.map(function(message){
+            var items = this.state.view === 'archive' ? this.state.list : this.state.unreadList;
+            selectedIds = items.map(function(message){
                 return message._id;
             });
         }
@@ -213,6 +222,24 @@ var Message = React.createClass({
             }
             body.classList.toggle('open');
         }
+    },
+    filterMessage: function(term){
+        var view = this.state.view;
+        if(term.length == 0){
+            return this.setState(getMessageFromStore());
+        }
+        if(view === 'unread'){
+            this.setState({
+                unreadList: (MessageStore.getUnread() || []).filter(function(msg){
+                    return msg.sender_name.indexOf(term) !== -1 || msg.sender_phone.indexOf(term) !== -1 || msg.content.indexOf(term) !== -1;
+                })
+            })
+        }else{
+
+        }
+    },
+    onMessageFilterClear: function(){
+        this.setState(getMessageFromStore());
     }
 });
 

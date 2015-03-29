@@ -299,13 +299,13 @@ pre > code {
 .mr, .mlr {
   margin-right: 8px; }
 
-.pt, .ptb {
+.pt, .ptb, .archive-heading {
   padding-top: 8px; }
 
 .mt, .mtb {
   margin-top: 8px; }
 
-.pb, .ptb {
+.pb, .ptb, .archive-heading {
   padding-bottom: 8px; }
 
 .mb, .mtb {
@@ -550,7 +550,8 @@ input.white:-ms-input-placeholder, textarea.white:-ms-input-placeholder {
 /* admin
 ==============================*/
 .admin-menu {
-  border-bottom: 1px solid #eee; }
+  border-bottom: 1px solid #ddd;
+  font-weight: bolder; }
 .admin-menu > .nav-tabs {
   margin-bottom: -1px; }
 
@@ -574,15 +575,39 @@ input.white:-ms-input-placeholder, textarea.white:-ms-input-placeholder {
 .read.active, .unread.active {
   background-color: #f4f4f4; }
 
+.badge.text-danger {
+  color: red; }
+
+.form-control-feedback {
+  pointer-events: auto; }
+
+.table-header {
+  background-color: #377bb5;
+  color: white;
+  border-bottom: 1px solid #ccc;
+  font-weight: bolder;
+  border-radius: 4px;
+  margin-bottom: 4px; }
+
 input[type="checkbox"] {
   margin-top: 0; }
 
-.panel-body {
+.archive-heading {
+  font-weight: bolder;
+  font-size: 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #efefef;
+  color: #444; }
+
+.archive-body, .panel-body {
   height: 0;
   overflow: hidden;
   padding: 0;
   -webkit-transition: height 0.4s ease;
           transition: height 0.4s ease; }
+
+.panel {
+  margin-bottom: 1px; }
 
 @-webkit-keyframes shake {
   0%,100% {
