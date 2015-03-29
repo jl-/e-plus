@@ -55,6 +55,7 @@ CONFIG.ACTION_TYPES = keyMirror(CONFIG.ACTION_TYPES);
 /// API
 ////////////// dev
 var domain = 'http://localhost:6002';
+domain = 'http://ef-server.jlxy.cz';
 CONFIG.APIS = {
     LOGIN: domain + '/sessions',
     //LOGIN: 'http://ef-server.jlxy.cz/sessions',
