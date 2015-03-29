@@ -40,9 +40,8 @@
 var mqtt = require('mqtt');
 var conn = 'ws://localhost:1883';
 conn = 'ws://localhost:1885';
-conn = 'ws://ef-server.jlxy.cz/1885';
 
-//conn = 'ws://104.131.165.132:1884';
+conn = 'ws://104.131.165.132:1885';
 //conn = 'ws://test.mosca.io/';
 
 var client;
