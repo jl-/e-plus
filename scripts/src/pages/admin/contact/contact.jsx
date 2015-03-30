@@ -62,7 +62,7 @@ var Contact = React.createClass({
         if(this.state.archive){
             var names = Object.keys(this.state.archive);
             View = names.map(function (name) {
-                var list = this.state.archive[name];
+                var list = this.state.archive[name] || [];
                 var Items = list.map(function(contact){
                     return (
                         <CheckableRow className={'full-row flex-row between read'} preChecked={self.state.selected.indexOf(contact._id) !== -1} key={contact._id} data={contact} onSelectChanged={self.onContactSelectChanged}>
