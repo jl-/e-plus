@@ -108,6 +108,7 @@ var Contact = React.createClass({
     },
     onChange: function(){
         this.setState(getContactFromStore());
+        this.refreshAfterDeleteContact();
     },
 
     toggleArchiveStatus: function(event){
@@ -125,6 +126,22 @@ var Contact = React.createClass({
             }
             body.classList.toggle('open');
         }
+    },
+
+    refreshAfterDeleteContact: function(){
+        var panels = document.querySelectorAll('.panel-body');
+        function resetHeight(panel){
+            var len = panel && panel.childElementCount;
+            if(len > 0) {
+                var li = panel.firstElementChild;
+                panel.style.height = (li.scrollHeight * len) + 'px';
+            }
+        }
+        Array.prototype.forEach.call(panels,function(panel){
+            if(panel.classList.contains('open')){
+                resetHeight(panel);
+            }
+        });
     },
 
     triggerAllSelection: function(event){
