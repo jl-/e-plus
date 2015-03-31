@@ -141,7 +141,7 @@ API.deleteContacts = function(contactIds){
     request.del(API_CONFIG.DELETE_CONTACTS)
         .set('Authorization', 'Bearer ' + SessionStore.getToken())
         .send({
-            callIds: contactIds
+            contactIds: contactIds
         })
         .end(function(err,data){
             ServerResponseActionCreators.gotDeleteContactsFeedback(data || err);
