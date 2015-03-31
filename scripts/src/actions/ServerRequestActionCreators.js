@@ -78,8 +78,5 @@ ServerRequestActionCreators.deleteContacts = function(contactIds){
 ServerRequestActionCreators.deleteContacts = function(contactIds){
     API.deleteContacts(contactIds);
 };
-ServerRequestActionCreators.deleteContacts = function(contactIds){
-    API.deleteContacts(contactIds);
-};
 
 module.exports = ServerRequestActionCreators;

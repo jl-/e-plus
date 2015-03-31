@@ -93,4 +93,10 @@ ServerResponseActionCreators.gotContactsArchive = function(contacts){
         data: contacts
     });
 };
+ServerResponseActionCreators.gotDeleteContactsFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CONTACTS_DELETED,
+        data: feedback
+    });
+};
 module.exports = ServerResponseActionCreators;

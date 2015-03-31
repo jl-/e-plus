@@ -33592,9 +33592,6 @@ ServerRequestActionCreators.deleteContacts = function(contactIds){
 ServerRequestActionCreators.deleteContacts = function(contactIds){
     API.deleteContacts(contactIds);
 };
-ServerRequestActionCreators.deleteContacts = function(contactIds){
-    API.deleteContacts(contactIds);
-};
 
 module.exports = ServerRequestActionCreators;
 
@@ -33692,6 +33689,12 @@ ServerResponseActionCreators.gotContactsArchive = function(contacts){
     AppDispatcher.dispatchAction({
         type: ACTION_TYPES.CONTACTS_ARCHIVE_RESPONSE,
         data: contacts
+    });
+};
+ServerResponseActionCreators.gotDeleteContactsFeedback = function (feedback) {
+    AppDispatcher.dispatchAction({
+        type: ACTION_TYPES.CONTACTS_DELETED,
+        data: feedback
     });
 };
 module.exports = ServerResponseActionCreators;
@@ -34509,7 +34512,7 @@ CONFIG.APIS = {
     CHANGE_CALLS_STATUS: domain + '/calls/status',
 
     CONTACTS_LIST: domain + '/contacts',
-    DELETE_CONTACTS: domain + 'contacts'
+    DELETE_CONTACTS: domain + '/contacts'
 };
 
 /////////// prop
@@ -35893,6 +35896,19 @@ function gotList(data){
     console.log(_archive);
 }
 
+function deleteContacts(data) {
+    data = data && data.body && data.body.deletedIds;
+    console.log(data);
+    if(data && _archive) {
+        data = data.split('|');
+        Object.keys(_archive).forEach(function(k){
+           _archive[k].items = _archive[k].items.filter(function (item) {
+                return data.indexOf(item._id) === -1;
+           });
+        });
+    }
+}
+
 
 var ContactStore = createStore({
     getError: function(){
@@ -35908,6 +35924,10 @@ ContactStore.dispatchToken = AppDispatcher.register(function(payload){
     switch (action.type){
         case ACTION_TYPES.CONTACTS_LIST_RESPONSE:
             gotList(action.data);
+            ContactStore.emitChange();
+            break;
+        case ACTION_TYPES.CONTACTS_DELETED:
+            deleteContacts(action.data);
             ContactStore.emitChange();
             break;
     }
@@ -36263,4 +36283,4 @@ console.log('e-plus ws client started..');
 console.log(client);
 
 module.exports = client;
-},{"mqtt":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/mqtt/lib/connect/index.js"}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/mqtt.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/search-filter.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ContactStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx"]);
+},{"mqtt":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/mqtt/lib/connect/index.js"}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/mqtt.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/search-filter.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ContactStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx"]);

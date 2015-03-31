@@ -20,6 +20,19 @@ function gotList(data){
     console.log(_archive);
 }
 
+function deleteContacts(data) {
+    data = data && data.body && data.body.deletedIds;
+    console.log(data);
+    if(data && _archive) {
+        data = data.split('|');
+        Object.keys(_archive).forEach(function(k){
+           _archive[k].items = _archive[k].items.filter(function (item) {
+                return data.indexOf(item._id) === -1;
+           });
+        });
+    }
+}
+
 
 var ContactStore = createStore({
     getError: function(){
@@ -35,6 +48,10 @@ ContactStore.dispatchToken = AppDispatcher.register(function(payload){
     switch (action.type){
         case ACTION_TYPES.CONTACTS_LIST_RESPONSE:
             gotList(action.data);
+            ContactStore.emitChange();
+            break;
+        case ACTION_TYPES.CONTACTS_DELETED:
+            deleteContacts(action.data);
             ContactStore.emitChange();
             break;
     }

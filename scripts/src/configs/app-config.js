@@ -69,7 +69,7 @@ CONFIG.APIS = {
     CHANGE_CALLS_STATUS: domain + '/calls/status',
 
     CONTACTS_LIST: domain + '/contacts',
-    DELETE_CONTACTS: domain + 'contacts'
+    DELETE_CONTACTS: domain + '/contacts'
 };
 
 /////////// prop
