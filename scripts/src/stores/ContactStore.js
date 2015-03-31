@@ -26,9 +26,10 @@ function deleteContacts(data) {
     if(data && _archive) {
         data = data.split('|');
         Object.keys(_archive).forEach(function(k){
-           _archive[k].items = _archive[k].items.filter(function (item) {
+           _archive[k] = _archive[k].filter(function (item) {
                 return data.indexOf(item._id) === -1;
            });
+            _archive[k] = _archive[k].length > 1 ? _archive[k] : null;
         });
     }
 }
