@@ -52,11 +52,16 @@ client.on('connect',function(){
     client.subscribe('presence');
 });
 
+
+
 client.on('message', function(topic, message) {
     console.log(message.toString());
     window.alert([topic,message]);
 });
+
+
 console.log('e-plus ws client started..');
 console.log(client);
+
 
 module.exports = client;
