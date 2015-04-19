@@ -14,7 +14,8 @@ CONFIG.PATHS = {
     ASSETS_ROOT: '/assets'
 };
 
-
+// mqtt websocket conn
+CONFIG.WS_CONN = 'ws://104.131.165.132:1885';
 
 
 /// payload_sources

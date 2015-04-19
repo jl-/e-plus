@@ -14,8 +14,11 @@ var Logo = require('../components/app/logo.jsx');
 var Apk = require('../components/app/apk.jsx');
 var Alert = require('../components/alerts/alert.jsx');
 
+var puller = require('../utils/puller');
+
 var ServerRequestActionCreators = require('../actions/ServerRequestActionCreators');
 var SessionStore = require('../stores/SessionStore');
+var ProfileStore = require('../stores/ProfileStore');
 
 
 function getUserInfoFromStore(){
@@ -26,6 +29,9 @@ function getLoginError(){
 }
 function getTokenFromStore(){
     return SessionStore.getToken();
+}
+function getProfileFromStore(){
+    return ProfileStore.getProfile();
 }
 
 
@@ -39,10 +45,12 @@ var Login = React.createClass({
         };
     },
     componentDidMount: function(){
-        SessionStore.addChangeListener(this.onChange);
+        SessionStore.addChangeListener(this.onLoginResponsed);
+        ProfileStore.addChangeListener(this.onProfileLoaded);
     },
     componentWillUnmount: function(){
-        SessionStore.removeChangeListener(this.onChange);
+        SessionStore.removeChangeListener(this.onLoginResponsed);
+        ProfileStore.removeChangeListener(this.onProfileLoaded);
     },
     render: function(){
 
@@ -134,21 +142,41 @@ var Login = React.createClass({
             password: this.state.password
         });
     },
-    onChange: function(){
+    onLoginResponsed: function(){
         var token = getTokenFromStore();
         console.log(token);
         if(token){
-            this.setState({
-                loginState: 'normal'
-            });
-            this.transitionTo('admin.message');
+            ServerRequestActionCreators.requestProfile(token);
         }else{
-            this.setState({
-                loginState: 'disabled',
-                error: getLoginError()
-            });
-            console.log(this.state);
+            this.hasError();
         }
+    },
+    onProfileLoaded: function () {
+        var profile = getProfileFromStore();
+        if (profile) {
+            var toTopic = 'EaseInfo_Android_Subscribe/' + profile.phone;
+            var onTopic = 'EaseInfo_Android_Publish/' + profile.phone;
+            var ACTION = 'SMS_CALL_UPLOAD';
+            puller.subscribe(onTopic);
+            puller.pull(toTopic, ACTION, onTopic, this.toAdmin);
+
+        } else {
+            this.hasError();
+        }
+    },
+    hasError: function (){
+        this.setState({
+            loginState: 'disabled',
+            error: getLoginError()
+        });
+        console.log(this.state);
+    },
+    toAdmin: function() {
+        this.setState({
+            loginState: 'normal'
+        });
+
+        this.transitionTo('admin.message');
     }
 });
 

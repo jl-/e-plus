@@ -34457,7 +34457,8 @@ CONFIG.PATHS = {
     ASSETS_ROOT: '/assets'
 };
 
-
+// mqtt websocket conn
+CONFIG.WS_CONN = 'ws://104.131.165.132:1885';
 
 
 /// payload_sources
@@ -34583,7 +34584,6 @@ var Router = require('react-router');
 var RouteHandler = Router.RouteHandler;
 var Link = Router.Link;
 
-var mqtt = require('../../utils/mqtt');
 
 var Authentication = require('../../mixins/Authentication');
 
@@ -34605,11 +34605,11 @@ var Admin = React.createClass({displayName: "Admin",
         };
     },
     componentDidMount: function(){
-        ServerRequestActionCreators.requestProfile();
-        ProfileStore.addChangeListener(this.onChange);
+        //ServerRequestActionCreators.requestProfile();
+        //ProfileStore.addChangeListener(this.onChange);
     },
     componentWillUnmount: function(){
-        ProfileStore.removeChangeListener(this.onChange);
+        //ProfileStore.removeChangeListener(this.onChange);
     },
     render: function(){
         var profile = this.state.profile;
@@ -34651,7 +34651,7 @@ var Admin = React.createClass({displayName: "Admin",
 module.exports = Admin;
 
 
-},{"../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../mixins/Authentication":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/mixins/Authentication.js","../../stores/ProfileStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","../../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","../../utils/mqtt":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/mqtt.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx":[function(require,module,exports){
+},{"../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../mixins/Authentication":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/mixins/Authentication.js","../../stores/ProfileStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","../../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/21/15.
@@ -35628,8 +35628,11 @@ var Logo = require('../components/app/logo.jsx');
 var Apk = require('../components/app/apk.jsx');
 var Alert = require('../components/alerts/alert.jsx');
 
+var puller = require('../utils/puller');
+
 var ServerRequestActionCreators = require('../actions/ServerRequestActionCreators');
 var SessionStore = require('../stores/SessionStore');
+var ProfileStore = require('../stores/ProfileStore');
 
 
 function getUserInfoFromStore(){
@@ -35640,6 +35643,9 @@ function getLoginError(){
 }
 function getTokenFromStore(){
     return SessionStore.getToken();
+}
+function getProfileFromStore(){
+    return ProfileStore.getProfile();
 }
 
 
@@ -35653,10 +35659,12 @@ var Login = React.createClass({displayName: "Login",
         };
     },
     componentDidMount: function(){
-        SessionStore.addChangeListener(this.onChange);
+        SessionStore.addChangeListener(this.onLoginResponsed);
+        ProfileStore.addChangeListener(this.onProfileLoaded);
     },
     componentWillUnmount: function(){
-        SessionStore.removeChangeListener(this.onChange);
+        SessionStore.removeChangeListener(this.onLoginResponsed);
+        ProfileStore.removeChangeListener(this.onProfileLoaded);
     },
     render: function(){
 
@@ -35748,27 +35756,47 @@ var Login = React.createClass({displayName: "Login",
             password: this.state.password
         });
     },
-    onChange: function(){
+    onLoginResponsed: function(){
         var token = getTokenFromStore();
         console.log(token);
         if(token){
-            this.setState({
-                loginState: 'normal'
-            });
-            this.transitionTo('admin.message');
+            ServerRequestActionCreators.requestProfile(token);
         }else{
-            this.setState({
-                loginState: 'disabled',
-                error: getLoginError()
-            });
-            console.log(this.state);
+            this.hasError();
         }
+    },
+    onProfileLoaded: function () {
+        var profile = getProfileFromStore();
+        if (profile) {
+            var toTopic = 'EaseInfo_Android_Subscribe/' + profile.phone;
+            var onTopic = 'EaseInfo_Android_Publish/' + profile.phone;
+            var ACTION = 'SMS_CALL_UPLOAD';
+            puller.subscribe(onTopic);
+            puller.pull(toTopic, ACTION, onTopic, this.toAdmin);
+
+        } else {
+            this.hasError();
+        }
+    },
+    hasError: function (){
+        this.setState({
+            loginState: 'disabled',
+            error: getLoginError()
+        });
+        console.log(this.state);
+    },
+    toAdmin: function() {
+        this.setState({
+            loginState: 'normal'
+        });
+
+        this.transitionTo('admin.message');
     }
 });
 
 module.exports = Login;
 
-},{"../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../components/alerts/alert.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","../components/app/apk.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","../components/app/intro.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","../components/app/logo.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","../components/forms/elements/paper-input.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","../components/forms/elements/reactive-submit":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js":[function(require,module,exports){
+},{"../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../components/alerts/alert.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","../components/app/apk.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","../components/app/intro.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","../components/app/logo.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","../components/forms/elements/paper-input.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","../components/forms/elements/reactive-submit":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","../stores/ProfileStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","../utils/puller":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/puller.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/26/15.
@@ -35991,6 +36019,7 @@ function gotArchive(data){
     _archive = data && data.status && data.archive;
     console.log(_archive);
 }
+
 function changeMessageView(view){
    _view = view;
 }
@@ -36011,8 +36040,6 @@ function messageStatusChanged(data){
     (_archive || []).forEach(function(archive){
         (archive.items || []).forEach(changeMessageStatus);
     });
-
-
 }
 function deletedMessages(feedback){
     console.log('/// message deleted, process in messageStore');
@@ -36282,32 +36309,80 @@ module.exports = function(keys){
 
 //module.exports = client;
 
+//var mqtt = require('mqtt');
+//var conn = 'ws://localhost:1883';
+//conn = 'ws://localhost:1885';
+//
+//conn = 'ws://104.131.165.132:1885';
+////conn = 'ws://test.mosca.io/';
+//
+//var client;
+//client = mqtt.connect(conn);
+//
+//client.on('connect',function(){
+//    console.log('e-plus ws connected.');
+//    client.subscribe('presence');
+//});
+//
+//
+//
+//client.on('message', function(topic, message) {
+//    console.log(message.toString());
+//    window.alert([topic,message]);
+//});
+//
+//
+//console.log('e-plus ws client started..');
+//console.log(client);
+//
+//
+//module.exports = client;
+},{}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/puller.js":[function(require,module,exports){
+
 var mqtt = require('mqtt');
-var conn = 'ws://localhost:1883';
-conn = 'ws://localhost:1885';
+var CONFIG = require('../configs/app-config');
+var keyMirror = require('../utils/keyMirror');
 
-conn = 'ws://104.131.165.132:1885';
-//conn = 'ws://test.mosca.io/';
+var puller = {};
+var STATUS = 'PENDING,RESOLVED,REJECTED';
+var DURS = 20000;
+STATUS = keyMirror(STATUS);
 
-var client;
-client = mqtt.connect(conn);
+var client = mqtt.connect(CONFIG.WS_CONN);
+
 
 client.on('connect',function(){
     console.log('e-plus ws connected.');
-    client.subscribe('presence');
 });
 
 
+puller.subscribe = function(topic) {
+    client.subscribe(topic);
+    console.log('top: ' + topic + ' subscribed.');
+};
 
-client.on('message', function(topic, message) {
-    console.log(message.toString());
-    window.alert([topic,message]);
-});
+
+puller.pull = function(toTopic, data, onTopic, callback) {
+    client.publish(toTopic, data);
+    client.on('message', function(tp, message) {
+        if (tp === onTopic && puller.status !== STATUS.REJECTED) {
+            console.log('get pull responsed: ');
+            console.log(message.toString());
+            clearTimeout(puller.timer);
+            puller.status = STATUS.RESOLVED;
+            callback.call(null, message);
+        }
+    });
+    puller.timer = setTimeout(function(){
+        puller.status = STATUS.REJECTED;
+        console.log('pull timeout..');
+        callback.call(null,{});
+    },DURS);
+};
 
 
 console.log('e-plus ws client started..');
 console.log(client);
 
-
-module.exports = client;
-},{"mqtt":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/mqtt/lib/connect/index.js"}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/mqtt.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/search-filter.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ContactStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx"]);
+module.exports = puller;
+},{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../utils/keyMirror":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","mqtt":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/mqtt/lib/connect/index.js"}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/mqtt.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/puller.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/search-filter.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ContactStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx"]);

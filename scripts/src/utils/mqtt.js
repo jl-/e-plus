@@ -37,31 +37,31 @@
 
 //module.exports = client;
 
-var mqtt = require('mqtt');
-var conn = 'ws://localhost:1883';
-conn = 'ws://localhost:1885';
-
-conn = 'ws://104.131.165.132:1885';
-//conn = 'ws://test.mosca.io/';
-
-var client;
-client = mqtt.connect(conn);
-
-client.on('connect',function(){
-    console.log('e-plus ws connected.');
-    client.subscribe('presence');
-});
-
-
-
-client.on('message', function(topic, message) {
-    console.log(message.toString());
-    window.alert([topic,message]);
-});
-
-
-console.log('e-plus ws client started..');
-console.log(client);
-
-
-module.exports = client;
+//var mqtt = require('mqtt');
+//var conn = 'ws://localhost:1883';
+//conn = 'ws://localhost:1885';
+//
+//conn = 'ws://104.131.165.132:1885';
+////conn = 'ws://test.mosca.io/';
+//
+//var client;
+//client = mqtt.connect(conn);
+//
+//client.on('connect',function(){
+//    console.log('e-plus ws connected.');
+//    client.subscribe('presence');
+//});
+//
+//
+//
+//client.on('message', function(topic, message) {
+//    console.log(message.toString());
+//    window.alert([topic,message]);
+//});
+//
+//
+//console.log('e-plus ws client started..');
+//console.log(client);
+//
+//
+//module.exports = client;

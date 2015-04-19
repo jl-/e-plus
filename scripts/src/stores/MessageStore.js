@@ -29,6 +29,7 @@ function gotArchive(data){
     _archive = data && data.status && data.archive;
     console.log(_archive);
 }
+
 function changeMessageView(view){
    _view = view;
 }
@@ -49,8 +50,6 @@ function messageStatusChanged(data){
     (_archive || []).forEach(function(archive){
         (archive.items || []).forEach(changeMessageStatus);
     });
-
-
 }
 function deletedMessages(feedback){
     console.log('/// message deleted, process in messageStore');

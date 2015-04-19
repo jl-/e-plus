@@ -7,7 +7,6 @@ var Router = require('react-router');
 var RouteHandler = Router.RouteHandler;
 var Link = Router.Link;
 
-var mqtt = require('../../utils/mqtt');
 
 var Authentication = require('../../mixins/Authentication');
 
@@ -29,11 +28,11 @@ var Admin = React.createClass({
         };
     },
     componentDidMount: function(){
-        ServerRequestActionCreators.requestProfile();
-        ProfileStore.addChangeListener(this.onChange);
+        //ServerRequestActionCreators.requestProfile();
+        //ProfileStore.addChangeListener(this.onChange);
     },
     componentWillUnmount: function(){
-        ProfileStore.removeChangeListener(this.onChange);
+        //ProfileStore.removeChangeListener(this.onChange);
     },
     render: function(){
         var profile = this.state.profile;
