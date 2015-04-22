@@ -5,7 +5,7 @@ var keyMirror = require('../utils/keyMirror');
 
 var puller = {};
 var STATUS = 'PENDING,RESOLVED,REJECTED';
-var DURS = 20000;
+var DURS = 10000;
 STATUS = keyMirror(STATUS);
 
 var client = mqtt.connect(CONFIG.WS_CONN);
@@ -25,9 +25,10 @@ puller.subscribe = function(topic) {
 puller.pull = function(toTopic, data, onTopic, callback) {
     client.publish(toTopic, data);
     client.on('message', function(tp, message) {
-        if (tp === onTopic && puller.status !== STATUS.REJECTED) {
+        message = message ? message.toString() : '';
+        console.log(message);
+        if (tp === onTopic && puller.status !== STATUS.REJECTED && message === 'FINISH_UPLOAD') {
             console.log('get pull responsed: ');
-            console.log(message.toString());
             clearTimeout(puller.timer);
             puller.status = STATUS.RESOLVED;
             callback.call(null, message);

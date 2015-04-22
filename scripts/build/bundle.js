@@ -34222,6 +34222,25 @@ var CheckableRow = React.createClass({displayName: "CheckableRow",
 
 module.exports = CheckableRow;
 
+},{"react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/data-puller.jsx":[function(require,module,exports){
+/**
+ * Created by jl on 2/20/15.
+ */
+var React = require('react/addons');
+
+var DataPuller = React.createClass({displayName: "DataPuller",
+    render: function(){
+        var btnClass = 'btn btn-primary';
+        return (
+            React.createElement("button", {className: btnClass}, 
+                "获取新数据"
+            )
+        );
+    }
+});
+
+
+module.exports = DataPuller;
 },{"react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx":[function(require,module,exports){
 /**
  *
@@ -34584,6 +34603,7 @@ var Router = require('react-router');
 var RouteHandler = Router.RouteHandler;
 var Link = Router.Link;
 
+var DataPuller = require('../../components/app/data-puller.jsx');
 
 var Authentication = require('../../mixins/Authentication');
 
@@ -34591,6 +34611,8 @@ var ServerRequestActionCreators = require('../../actions/ServerRequestActionCrea
 
 var SessionStore = require('../../stores/SessionStore');
 var ProfileStore = require('../../stores/ProfileStore');
+
+var puller = require('../../utils/puller');
 
 
 function getProfileFromStore(){
@@ -34616,8 +34638,12 @@ var Admin = React.createClass({displayName: "Admin",
         return (
             React.createElement("div", {className: "cover pt-extra"}, 
                 React.createElement("div", {className: "admin-menu flex-row between"}, 
-                    React.createElement("div", null, 
-                        React.createElement("span", {className: "label ml-extra label-primary pointer"}, "你好，", profile ? profile.phone : null)
+                    React.createElement("div", {className: "label ptb-sm plr-sm center-block ml-extra label-primary"}, 
+                        React.createElement("span", null, "你好，", profile ? profile.phone : null), 
+                        React.createElement("label", {className: "data-puller ml-lg mb-0 pointer", onClick: this.pullData}, 
+                            React.createElement("span", {className: "fa mr fa-refresh text-white", ref: "pullerSpinner"}), 
+                            React.createElement("span", {ref: "pullerText"}, "拉取数据")
+                        )
                     ), 
                     React.createElement("ul", {className: "nav nav-tabs"}, 
                         React.createElement("li", null, 
@@ -34645,13 +34671,34 @@ var Admin = React.createClass({displayName: "Admin",
         this.setState({
             profile: ProfileStore.getProfile()
         });
+    },
+    pullData: function (event) {
+        var profile = getProfileFromStore();
+
+        var target = event.target;
+        var pullerSpinner = this.refs.pullerSpinner.getDOMNode();
+        var pullerText = this.refs.pullerText.getDOMNode();
+        var toTopic = 'EaseInfo_Android_Subscribe/' + profile.phone;
+        var onTopic = 'EaseInfo_Android_Publish/' + profile.phone;
+        var ACTION = 'SMS_CALL_UPLOAD';
+        pullerSpinner.classList.add('fa-spin');
+        pullerText.textContent = '正在拉取新数据...';
+        puller.subscribe(onTopic);
+        puller.pull(toTopic, ACTION, onTopic, function (message) {
+            ServerRequestActionCreators.requestMessages();
+            ServerRequestActionCreators.requestCalls();
+            setTimeout(function(){
+                pullerSpinner.classList.remove('fa-spin');
+                pullerText.textContent = '成功更新数据.';
+            },3000);
+        });
     }
 });
 
 module.exports = Admin;
 
 
-},{"../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../mixins/Authentication":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/mixins/Authentication.js","../../stores/ProfileStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","../../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx":[function(require,module,exports){
+},{"../../actions/ServerRequestActionCreators":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","../../components/app/data-puller.jsx":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/data-puller.jsx","../../mixins/Authentication":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/mixins/Authentication.js","../../stores/ProfileStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","../../stores/SessionStore":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","../../utils/puller":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/puller.js","react-router":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react-router/modules/index.js","react/addons":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/react/addons.js"}],"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx":[function(require,module,exports){
 /**
  *
  * Created by jl on 2/21/15.
@@ -36345,7 +36392,7 @@ var keyMirror = require('../utils/keyMirror');
 
 var puller = {};
 var STATUS = 'PENDING,RESOLVED,REJECTED';
-var DURS = 20000;
+var DURS = 10000;
 STATUS = keyMirror(STATUS);
 
 var client = mqtt.connect(CONFIG.WS_CONN);
@@ -36365,9 +36412,10 @@ puller.subscribe = function(topic) {
 puller.pull = function(toTopic, data, onTopic, callback) {
     client.publish(toTopic, data);
     client.on('message', function(tp, message) {
-        if (tp === onTopic && puller.status !== STATUS.REJECTED) {
+        message = message ? message.toString() : '';
+        console.log(message);
+        if (tp === onTopic && puller.status !== STATUS.REJECTED && message === 'FINISH_UPLOAD') {
             console.log('get pull responsed: ');
-            console.log(message.toString());
             clearTimeout(puller.timer);
             puller.status = STATUS.RESOLVED;
             callback.call(null, message);
@@ -36385,4 +36433,4 @@ console.log('e-plus ws client started..');
 console.log(client);
 
 module.exports = puller;
-},{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../utils/keyMirror":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","mqtt":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/mqtt/lib/connect/index.js"}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/mqtt.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/puller.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/search-filter.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ContactStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx"]);
+},{"../configs/app-config":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","../utils/keyMirror":"/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","mqtt":"/Users/jl/workspace/web/github/jl-/e-plus/node_modules/mqtt/lib/connect/index.js"}]},{},["/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/createStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/keyMirror.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/mqtt.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/utils/puller.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/configs/app-config.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-content.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group-header.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion-group.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/accordion.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/accordion/index.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/alerts/alert.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/apk.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/checkable-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/data-puller.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/intro.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/logo.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/message-row.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/app/search-filter.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/paper-input.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/components/forms/elements/reactive-submit.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/dispatchers/AppDispatcher.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/CallStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ContactStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/MessageStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/ProfileStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/stores/SessionStore.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerRequestActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ServerResponseActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/actions/ViewActionCreators.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/apis/api.js","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/admin.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/call/call.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/contact/contact.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/file/file.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/_message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/archive.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/message.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/admin/message/unread.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/pages/login.jsx","/Users/jl/workspace/web/github/jl-/e-plus/scripts/src/app.jsx"]);

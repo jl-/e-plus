@@ -7,6 +7,7 @@ var Router = require('react-router');
 var RouteHandler = Router.RouteHandler;
 var Link = Router.Link;
 
+var DataPuller = require('../../components/app/data-puller.jsx');
 
 var Authentication = require('../../mixins/Authentication');
 
@@ -14,6 +15,8 @@ var ServerRequestActionCreators = require('../../actions/ServerRequestActionCrea
 
 var SessionStore = require('../../stores/SessionStore');
 var ProfileStore = require('../../stores/ProfileStore');
+
+var puller = require('../../utils/puller');
 
 
 function getProfileFromStore(){
@@ -39,8 +42,12 @@ var Admin = React.createClass({
         return (
             <div className="cover pt-extra">
                 <div className="admin-menu flex-row between">
-                    <div>
-                        <span className="label ml-extra label-primary pointer">你好，{profile ? profile.phone : null}</span>
+                    <div className="label ptb-sm plr-sm center-block ml-extra label-primary">
+                        <span >你好，{profile ? profile.phone : null}</span>
+                        <label className="data-puller ml-lg mb-0 pointer" onClick={this.pullData}>
+                            <span className="fa mr fa-refresh text-white" ref="pullerSpinner"></span>
+                            <span ref="pullerText">拉取数据</span>
+                        </label>
                     </div>
                     <ul className="nav nav-tabs">
                         <li>
@@ -67,6 +74,27 @@ var Admin = React.createClass({
         console.log('//// admin change listener, got profile from profileStore:');
         this.setState({
             profile: ProfileStore.getProfile()
+        });
+    },
+    pullData: function (event) {
+        var profile = getProfileFromStore();
+
+        var target = event.target;
+        var pullerSpinner = this.refs.pullerSpinner.getDOMNode();
+        var pullerText = this.refs.pullerText.getDOMNode();
+        var toTopic = 'EaseInfo_Android_Subscribe/' + profile.phone;
+        var onTopic = 'EaseInfo_Android_Publish/' + profile.phone;
+        var ACTION = 'SMS_CALL_UPLOAD';
+        pullerSpinner.classList.add('fa-spin');
+        pullerText.textContent = '正在拉取新数据...';
+        puller.subscribe(onTopic);
+        puller.pull(toTopic, ACTION, onTopic, function (message) {
+            ServerRequestActionCreators.requestMessages();
+            ServerRequestActionCreators.requestCalls();
+            setTimeout(function(){
+                pullerSpinner.classList.remove('fa-spin');
+                pullerText.textContent = '成功更新数据.';
+            },3000);
         });
     }
 });
