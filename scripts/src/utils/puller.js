@@ -11,9 +11,6 @@ STATUS = keyMirror(STATUS);
 var client = mqtt.connect(CONFIG.WS_CONN);
 
 
-client.on('connect',function(){
-    console.log('e-plus ws connected.');
-});
 
 
 puller.subscribe = function(topic) {
@@ -21,26 +18,62 @@ puller.subscribe = function(topic) {
     console.log('top: ' + topic + ' subscribed.');
 };
 
-
-puller.pull = function(toTopic, data, onTopic, callback) {
-    client.publish(toTopic, data);
-    client.on('message', function(tp, message) {
-        message = message ? message.toString() : '';
-        console.log(message);
-        if (tp === onTopic && puller.status !== STATUS.REJECTED && message === 'FINISH_UPLOAD') {
-            console.log('get pull responsed: ');
-            clearTimeout(puller.timer);
-            puller.status = STATUS.RESOLVED;
-            callback.call(null, message);
-        }
+puller.handlers = [];
+puller.pushHandler = function (handler){
+   puller.handlers.push(handler);
+};
+puller.shiftHandler = function(){
+   puller.handlers.shift();
+};
+puller.getHandlers = function(topic) {
+    return puller.handlers.filter(function(handler){
+        return handler.onTopic === topic;
     });
-    puller.timer = setTimeout(function(){
-        puller.status = STATUS.REJECTED;
-        console.log('pull timeout..');
-        callback.call(null);
-    },DURS);
+};
+puller.emptyHandlers = function(){
+    puller.handlers = [];
 };
 
+
+puller.pull = function(toTopic, data, onTopic, callback) {
+    var handler = {
+        onTopic: onTopic,
+        callback: callback,
+        status: STATUS.PENDING
+    };
+    handler.timer = setTimeout(function(){
+            handler.status = STATUS.REJECTED;
+            console.log('pull timeout..');
+            handler.callback.call(null);
+    },DURS);
+    puller.pushHandler(handler);
+
+    client.publish(toTopic, data);
+};
+
+
+
+client.on('connect',function(){
+    console.log('e-plus ws connected.');
+});
+client.on('message', function(tp, message) {
+    var handlers = puller.getHandlers(tp);
+
+    if(handlers.length > 0) {
+        console.log('/// handlers for topic: ' + tp);
+        console.log(handlers);
+
+        message = message ? message.toString() : '';
+
+        handlers.forEach(function(handler){
+            if (handler.status !== STATUS.REJECTED) {
+                clearTimeout(handler.timer);
+                handler.status = STATUS.RESOLVED;
+                handler.callback.call(null, message);
+            }
+        });
+    }
+});
 
 console.log('e-plus ws client started..');
 console.log(client);

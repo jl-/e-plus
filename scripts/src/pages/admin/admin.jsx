@@ -87,13 +87,16 @@ var Admin = React.createClass({
         var ACTION = 'SMS_CALL_UPLOAD';
         pullerSpinner.classList.add('fa-spin');
         pullerText.textContent = '正在更新数据...';
+        puller.emptyHandlers();
         puller.subscribe(onTopic);
         puller.pull(toTopic, ACTION, onTopic, function (message) {
             ServerRequestActionCreators.requestMessages();
             ServerRequestActionCreators.requestCalls();
+            console.log(message);
             setTimeout(function(){
                 pullerSpinner.classList.remove('fa-spin');
                 pullerText.textContent = message ? '成功同步数据.' : '更新超时，请重试';
+                //pullerText.textContent = '成功同步数据.';
             },3000);
         });
     }
