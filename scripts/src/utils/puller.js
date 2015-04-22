@@ -37,7 +37,7 @@ puller.pull = function(toTopic, data, onTopic, callback) {
     puller.timer = setTimeout(function(){
         puller.status = STATUS.REJECTED;
         console.log('pull timeout..');
-        callback.call(null,{});
+        callback.call(null);
     },DURS);
 };
 

@@ -46,7 +46,7 @@ var Admin = React.createClass({
                         <span >你好，{profile ? profile.phone : null}</span>
                         <label className="data-puller ml-lg mb-0 pointer" onClick={this.pullData}>
                             <span className="fa mr fa-refresh text-white" ref="pullerSpinner"></span>
-                            <span ref="pullerText">拉取数据</span>
+                            <span ref="pullerText">同步数据</span>
                         </label>
                     </div>
                     <ul className="nav nav-tabs">
@@ -86,14 +86,14 @@ var Admin = React.createClass({
         var onTopic = 'EaseInfo_Android_Publish/' + profile.phone;
         var ACTION = 'SMS_CALL_UPLOAD';
         pullerSpinner.classList.add('fa-spin');
-        pullerText.textContent = '正在拉取新数据...';
+        pullerText.textContent = '正在更新数据...';
         puller.subscribe(onTopic);
         puller.pull(toTopic, ACTION, onTopic, function (message) {
             ServerRequestActionCreators.requestMessages();
             ServerRequestActionCreators.requestCalls();
             setTimeout(function(){
                 pullerSpinner.classList.remove('fa-spin');
-                pullerText.textContent = '成功更新数据.';
+                pullerText.textContent = message ? '成功同步数据.' : '更新超时，请重试';
             },3000);
         });
     }

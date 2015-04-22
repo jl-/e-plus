@@ -34642,7 +34642,7 @@ var Admin = React.createClass({displayName: "Admin",
                         React.createElement("span", null, "你好，", profile ? profile.phone : null), 
                         React.createElement("label", {className: "data-puller ml-lg mb-0 pointer", onClick: this.pullData}, 
                             React.createElement("span", {className: "fa mr fa-refresh text-white", ref: "pullerSpinner"}), 
-                            React.createElement("span", {ref: "pullerText"}, "拉取数据")
+                            React.createElement("span", {ref: "pullerText"}, "同步数据")
                         )
                     ), 
                     React.createElement("ul", {className: "nav nav-tabs"}, 
@@ -34682,14 +34682,14 @@ var Admin = React.createClass({displayName: "Admin",
         var onTopic = 'EaseInfo_Android_Publish/' + profile.phone;
         var ACTION = 'SMS_CALL_UPLOAD';
         pullerSpinner.classList.add('fa-spin');
-        pullerText.textContent = '正在拉取新数据...';
+        pullerText.textContent = '正在更新数据...';
         puller.subscribe(onTopic);
         puller.pull(toTopic, ACTION, onTopic, function (message) {
             ServerRequestActionCreators.requestMessages();
             ServerRequestActionCreators.requestCalls();
             setTimeout(function(){
                 pullerSpinner.classList.remove('fa-spin');
-                pullerText.textContent = '成功更新数据.';
+                pullerText.textContent = message ? '成功同步数据.' : '更新超时，请重试';
             },3000);
         });
     }
@@ -36424,7 +36424,7 @@ puller.pull = function(toTopic, data, onTopic, callback) {
     puller.timer = setTimeout(function(){
         puller.status = STATUS.REJECTED;
         console.log('pull timeout..');
-        callback.call(null,{});
+        callback.call(null);
     },DURS);
 };
 
