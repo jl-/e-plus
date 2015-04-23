@@ -35471,7 +35471,7 @@ var Message = React.createClass({displayName: "Message",
                     var Items = archive.items.map(function(message){
                         return (
                             React.createElement(CheckableRow, {className: 'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read'), preChecked: self.state.selected.indexOf(message._id) !== -1, key: message._id, data: message, onSelectChanged: self.onMessageSelectChanged}, 
-                                React.createElement("div", {className: "flex-1 ml text-left"}, message.sender_phone), 
+                                React.createElement("div", {className: "flex-1 ml text-left"}, message.sender_phone + ' ' +  message.sender_name), 
                                 React.createElement("div", {className: "flex-2 text-left"}, message.content), 
                                 React.createElement("div", {className: "flex-1 text-left"}, (new Date(message.date)).toLocaleString())
                             )
@@ -35498,7 +35498,7 @@ var Message = React.createClass({displayName: "Message",
                     var date = (new Date(message.date)).toLocaleString();
                     return (
                         React.createElement(CheckableRow, {className: 'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read'), preChecked: self.state.selected.indexOf(message._id) !== -1, key: message._id, data: message, onSelectChanged: self.onMessageSelectChanged}, 
-                            React.createElement("div", {className: "flex-1 ml text-left"}, message.sender_phone), 
+                            React.createElement("div", {className: "flex-1 ml text-left"}, message.sender_phone + ' ' + message.sender_name), 
                             React.createElement("div", {className: "flex-2 text-left"}, message.content), 
                             React.createElement("div", {className: "flex-1 text-left"}, date)
                         )

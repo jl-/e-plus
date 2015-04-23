@@ -83,7 +83,7 @@ var Message = React.createClass({
                     var Items = archive.items.map(function(message){
                         return (
                             <CheckableRow className={'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read')} preChecked={self.state.selected.indexOf(message._id) !== -1} key={message._id} data={message} onSelectChanged={self.onMessageSelectChanged}>
-                                <div className="flex-1 ml text-left">{message.sender_phone}</div>
+                                <div className="flex-1 ml text-left">{message.sender_phone + ' ' +  message.sender_name}</div>
                                 <div className="flex-2 text-left">{message.content}</div>
                                 <div className="flex-1 text-left">{(new Date(message.date)).toLocaleString()}</div>
                             </CheckableRow>
@@ -110,7 +110,7 @@ var Message = React.createClass({
                     var date = (new Date(message.date)).toLocaleString();
                     return (
                         <CheckableRow className={'full-row flex-row between ' + (message.status === 'P' ? 'unread' : 'read')} preChecked={self.state.selected.indexOf(message._id) !== -1} key={message._id} data={message} onSelectChanged={self.onMessageSelectChanged}>
-                            <div className="flex-1 ml text-left">{message.sender_phone}</div>
+                            <div className="flex-1 ml text-left">{message.sender_phone + ' ' + message.sender_name}</div>
                             <div className="flex-2 text-left">{message.content}</div>
                             <div className="flex-1 text-left">{date}</div>
                         </CheckableRow>
