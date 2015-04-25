@@ -32,7 +32,7 @@ var ProfileStore = createStore({
         return _error;
     },
     getProfile: function(){
-        _profile = _profile || window.sessionStorage.getItem('profile');
+        _profile = _profile || JSON.parse(window.sessionStorage.getItem('profile'));
         return _profile;
     }
 });
